@@ -4,7 +4,8 @@ import { Route, Routes } from 'react-router-dom'
 import Login from './Pages/Login'
 import TableDataLayer from './Components/TableDataLayer'
 import Dashboard from './Pages/Dashboard'
-
+import ViewProfileLayer from './Pages/ViewProfileLayer'
+import Forms from './Components/Forms'
 
 function App() {
   
@@ -20,9 +21,10 @@ function App() {
         <Route path="/" element={<TableDataLayer />} />
         <Route path="/view-profile" element={<ViewProfileLayer />} />
         <Route path="/form" element={<Forms />} />
+      <Route path='/dashboard' element={<Dashboard/>} />
+
         {/* Ajoutez d'autres routes protégées ici */}
       </Route>
-      <Route path='/dashboard' element={<Dashboard/>} />
     </Routes>
 
   )
