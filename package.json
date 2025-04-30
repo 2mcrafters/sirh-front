@@ -10,16 +10,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "^2.7.0",
     "axios": "^1.9.0",
+    "bootstrap": "^5.3.5",
+    "datatables.net-buttons-dt": "^3.2.3",
+    "datatables.net-dt": "^2.2.2",
+    "datatables.net-responsive-dt": "^3.0.4",
+    "jquery": "^3.7.1",
     "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.5.3"
+    "react-router-dom": "^7.5.3",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@iconify/react": "^5.2.1",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
