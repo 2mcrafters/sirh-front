@@ -619,16 +619,3 @@ const ViewProfileLayer = () => {
 };
 
 export default ViewProfileLayer;
-
-
-
-
-
-
-
-
-
-
-
-
-
