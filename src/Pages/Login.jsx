@@ -109,7 +109,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/view-profile');
     }
   }, [user, navigate]);
 

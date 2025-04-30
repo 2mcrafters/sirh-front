@@ -1,9 +1,13 @@
+
+
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useState } from "react";
+import { useSelector } from 'react-redux';
 
 const ViewProfileLayer = () => {
+  const { user } = useSelector((state) => state.auth);
   const [imagePreview, setImagePreview] = useState(
-    "assets/images/user-grid/user-grid-img13.png"
+    user?.profile_picture || "assets/images/user-grid/user-grid-img13.png"
   );
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
@@ -13,7 +17,6 @@ const ViewProfileLayer = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  // Toggle function for confirm password field
   const toggleConfirmPasswordVisibility = () => {
     setConfirmPasswordVisible(!confirmPasswordVisible);
   };
@@ -27,6 +30,11 @@ const ViewProfileLayer = () => {
       reader.readAsDataURL(input.target.files[0]);
     }
   };
+
+  if (!user) {
+    return <p>Utilisateur non trouvé.</p>;
+  }
+
   return (
     <div className='row gy-4'>
       <div className='col-lg-4'>
@@ -39,13 +47,13 @@ const ViewProfileLayer = () => {
           <div className='pb-24 ms-16 mb-24 me-16  mt--100'>
             <div className='text-center border border-top-0 border-start-0 border-end-0'>
               <img
-                src='assets/images/user-grid/user-grid-img14.png'
+                src={imagePreview}
                 alt='WowDash React Vite'
                 className='border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover'
               />
-              <h6 className='mb-0 mt-16'>Jacob Jones</h6>
+              <h6 className='mb-0 mt-16'>{user.name} {user.prenom}</h6>
               <span className='text-secondary-light mb-16'>
-                ifrandom@gmail.com
+                {user.email}
               </span>
             </div>
             <div className='mt-24'>
@@ -56,62 +64,63 @@ const ViewProfileLayer = () => {
                     Full Name
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : Will Jonto
+                    : {user.name} {user.prenom}
                   </span>
                 </li>
                 <li className='d-flex align-items-center gap-1 mb-12'>
                   <span className='w-30 text-md fw-semibold text-primary-light'>
-                    {" "}
                     Email
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : willjontoax@gmail.com
+                    : {user.email}
                   </span>
                 </li>
                 <li className='d-flex align-items-center gap-1 mb-12'>
                   <span className='w-30 text-md fw-semibold text-primary-light'>
-                    {" "}
                     Phone Number
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : (1) 2536 2561 2365
+                    : {user.tel}
                   </span>
                 </li>
                 <li className='d-flex align-items-center gap-1 mb-12'>
                   <span className='w-30 text-md fw-semibold text-primary-light'>
-                    {" "}
                     Department
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : Design
+                    : {user.departement_id}
                   </span>
                 </li>
                 <li className='d-flex align-items-center gap-1 mb-12'>
                   <span className='w-30 text-md fw-semibold text-primary-light'>
-                    {" "}
-                    Designation
+                    Status
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : UI UX Designer
+                    : {user.statut}
                   </span>
                 </li>
                 <li className='d-flex align-items-center gap-1 mb-12'>
                   <span className='w-30 text-md fw-semibold text-primary-light'>
-                    {" "}
-                    Languages
+                    Birth Date
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : English
+                    : {user.date_naissance}
+                  </span>
+                </li>
+                <li className='d-flex align-items-center gap-1 mb-12'>
+                  <span className='w-30 text-md fw-semibold text-primary-light'>
+                    RIB
+                  </span>
+                  <span className='w-70 text-secondary-light fw-medium'>
+                    : {user.rib}
                   </span>
                 </li>
                 <li className='d-flex align-items-center gap-1'>
                   <span className='w-30 text-md fw-semibold text-primary-light'>
-                    {" "}
-                    Bio
+                    Family Situation
                   </span>
                   <span className='w-70 text-secondary-light fw-medium'>
-                    : Lorem Ipsum&nbsp;is simply dummy text of the printing and
-                    typesetting industry.
+                    : {user.situationFamiliale}
                   </span>
                 </li>
               </ul>
@@ -119,6 +128,7 @@ const ViewProfileLayer = () => {
           </div>
         </div>
       </div>
+
       <div className='col-lg-8'>
         <div className='card h-100'>
           <div className='card-body p-24'>
@@ -172,6 +182,18 @@ const ViewProfileLayer = () => {
                 </button>
               </li>
             </ul>
+
+
+
+
+
+
+
+
+
+
+
+
             <div className='tab-content' id='pills-tabContent'>
               <div
                 className='tab-pane fade show active'
@@ -233,6 +255,7 @@ const ViewProfileLayer = () => {
                           className='form-control radius-8'
                           id='name'
                           placeholder='Enter Full Name'
+                          defaultValue={`${user.name} ${user.prenom}`}
                         />
                       </div>
                     </div>
@@ -249,6 +272,7 @@ const ViewProfileLayer = () => {
                           className='form-control radius-8'
                           id='email'
                           placeholder='Enter email address'
+                          defaultValue={user.email}
                         />
                       </div>
                     </div>
@@ -261,10 +285,11 @@ const ViewProfileLayer = () => {
                           Phone
                         </label>
                         <input
-                          type='email'
+                          type='tel'
                           className='form-control radius-8'
                           id='number'
                           placeholder='Enter phone number'
+                          defaultValue={user.tel}
                         />
                       </div>
                     </div>
@@ -280,73 +305,91 @@ const ViewProfileLayer = () => {
                         <select
                           className='form-control radius-8 form-select'
                           id='depart'
-                          defaultValue='Select Event Title'
+                          defaultValue={user.departement_id || 'Select Department'}
                         >
-                          <option value='Select Event Title' disabled>
-                            Select Event Title
+                          <option value='Select Department' disabled>
+                            Select Department
                           </option>
-                          <option value='Enter Event Title'>
-                            Enter Event Title
-                          </option>
-                          <option value='Enter Event Title One'>
-                            Enter Event Title One
-                          </option>
-                          <option value='Enter Event Title Two'>
-                            Enter Event Title Two
-                          </option>
+                          <option value='IT'>IT</option>
+                          <option value='HR'>HR</option>
+                          <option value='Finance'>Finance</option>
                         </select>
                       </div>
                     </div>
                     <div className='col-sm-6'>
                       <div className='mb-20'>
                         <label
-                          htmlFor='desig'
+                          htmlFor='status'
                           className='form-label fw-semibold text-primary-light text-sm mb-8'
                         >
-                          Designation
+                          Status
                           <span className='text-danger-600'>*</span>{" "}
                         </label>
                         <select
                           className='form-control radius-8 form-select'
-                          id='desig'
-                          defaultValue='Select Designation Title'
+                          id='status'
+                          defaultValue={user.statut || 'Select Status'}
                         >
-                          <option value='Select Designation Title' disabled>
-                            Select Designation Title
+                          <option value='Select Status' disabled>
+                            Select Status
                           </option>
-                          <option value='Enter Designation Title'>
-                            Enter Designation Title
-                          </option>
-                          <option value='Enter Designation Title One'>
-                            Enter Designation Title One
-                          </option>
-                          <option value='Enter Designation Title Two'>
-                            Enter Designation Title Two
-                          </option>
+                          <option value='Active'>Active</option>
+                          <option value='Inactive'>Inactive</option>
                         </select>
                       </div>
                     </div>
                     <div className='col-sm-6'>
                       <div className='mb-20'>
                         <label
-                          htmlFor='Language'
+                          htmlFor='birthDate'
                           className='form-label fw-semibold text-primary-light text-sm mb-8'
                         >
-                          Language
-                          <span className='text-danger-600'>*</span>{" "}
+                          Birth Date
+                        </label>
+                        <input
+                          type='date'
+                          className='form-control radius-8'
+                          id='birthDate'
+                          defaultValue={user.date_naissance}
+                        />
+                      </div>
+                    </div>
+                    <div className='col-sm-6'>
+                      <div className='mb-20'>
+                        <label
+                          htmlFor='rib'
+                          className='form-label fw-semibold text-primary-light text-sm mb-8'
+                        >
+                          RIB
+                        </label>
+                        <input
+                          type='text'
+                          className='form-control radius-8'
+                          id='rib'
+                          placeholder='Enter RIB'
+                          defaultValue={user.rib}
+                        />
+                      </div>
+                    </div>
+                    <div className='col-sm-6'>
+                      <div className='mb-20'>
+                        <label
+                          htmlFor='familySituation'
+                          className='form-label fw-semibold text-primary-light text-sm mb-8'
+                        >
+                          Family Situation
                         </label>
                         <select
                           className='form-control radius-8 form-select'
-                          id='Language'
-                          defaultValue='Select Language'
+                          id='familySituation'
+                          defaultValue={user.situationFamiliale || 'Select Family Situation'}
                         >
-                          <option value='Select Language' disabled>
-                            Select Language
+                          <option value='Select Family Situation' disabled>
+                            Select Family Situation
                           </option>
-                          <option value='English'>English</option>
-                          <option value='Bangla'>Bangla</option>
-                          <option value='Hindi'>Hindi</option>
-                          <option value='Arabic'>Arabic</option>
+                          <option value='Single'>Single</option>
+                          <option value='Married'>Married</option>
+                          <option value='Divorced'>Divorced</option>
                         </select>
                       </div>
                     </div>
@@ -359,11 +402,11 @@ const ViewProfileLayer = () => {
                           Description
                         </label>
                         <textarea
-                          name='#0'
+                          name='bio'
                           className='form-control radius-8'
                           id='desc'
                           placeholder='Write description...'
-                          defaultValue={""}
+                          defaultValue={user.bio || ""}
                         />
                       </div>
                     </div>
@@ -384,6 +427,10 @@ const ViewProfileLayer = () => {
                   </div>
                 </form>
               </div>
+
+
+
+
               <div
                 className='tab-pane fade'
                 id='pills-change-passwork'
@@ -437,6 +484,20 @@ const ViewProfileLayer = () => {
                       onClick={toggleConfirmPasswordVisibility}
                     ></span>
                   </div>
+                </div>
+                <div className='d-flex align-items-center justify-content-center gap-3 mt-24'>
+                  <button
+                    type='button'
+                    className='border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8'
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type='button'
+                    className='btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8'
+                  >
+                    Update Password
+                  </button>
                 </div>
               </div>
               <div
@@ -534,6 +595,20 @@ const ViewProfileLayer = () => {
                     />
                   </div>
                 </div>
+                <div className='d-flex align-items-center justify-content-center gap-3 mt-24'>
+                  <button
+                    type='button'
+                    className='border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8'
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type='button'
+                    className='btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8'
+                  >
+                    Save Settings
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -544,3 +619,16 @@ const ViewProfileLayer = () => {
 };
 
 export default ViewProfileLayer;
+
+
+
+
+
+
+
+
+
+
+
+
+
