@@ -1,13 +1,17 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { Link, NavLink, useLocation, Outlet } from "react-router-dom";
+import { Link, NavLink, useLocation, Outlet, useNavigate } from "react-router-dom";
 import ThemeToggleButton from "../helper/ThemeToggleButton";
+import { useDispatch } from "react-redux";
+import { logout } from "../Redux/Slices/authSlice";
 
 const MasterLayout = ({ children }) => {
   let [sidebarActive, seSidebarActive] = useState(false);
   let [mobileMenu, setMobileMenu] = useState(false);
   const location = useLocation(); // Hook to get the current route
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleDropdownClick = (event) => {
@@ -84,6 +88,15 @@ const MasterLayout = ({ children }) => {
 
   let mobileMenuControl = () => {
     setMobileMenu(!mobileMenu);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      navigate('/login');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
   };
 
   return (
@@ -1573,7 +1586,7 @@ const MasterLayout = ({ children }) => {
                               Kathryn Murphy
                             </h6>
                             <p className='mb-0 text-sm text-secondary-light text-w-100-px'>
-                              hey! there i’m...
+                              hey! there i'm...
                             </p>
                           </div>
                         </div>
@@ -1603,7 +1616,7 @@ const MasterLayout = ({ children }) => {
                               Kathryn Murphy
                             </h6>
                             <p className='mb-0 text-sm text-secondary-light text-w-100-px'>
-                              hey! there i’m...
+                              hey! there i'm...
                             </p>
                           </div>
                         </div>
@@ -1633,7 +1646,7 @@ const MasterLayout = ({ children }) => {
                               Kathryn Murphy
                             </h6>
                             <p className='mb-0 text-sm text-secondary-light text-w-100-px'>
-                              hey! there i’m...
+                              hey! there i'm...
                             </p>
                           </div>
                         </div>
@@ -1663,7 +1676,7 @@ const MasterLayout = ({ children }) => {
                               Kathryn Murphy
                             </h6>
                             <p className='mb-0 text-sm text-secondary-light text-w-100-px'>
-                              hey! there i’m...
+                              hey! there i'm...
                             </p>
                           </div>
                         </div>
@@ -1693,7 +1706,7 @@ const MasterLayout = ({ children }) => {
                               Kathryn Murphy
                             </h6>
                             <p className='mb-0 text-sm text-secondary-light text-w-100-px'>
-                              hey! there i’m...
+                              hey! there i'm...
                             </p>
                           </div>
                         </div>
@@ -1938,6 +1951,7 @@ const MasterLayout = ({ children }) => {
                         <Link
                           className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3'
                           to='#'
+                          onClick={handleLogout}
                         >
                           <Icon icon='lucide:power' className='icon text-xl' />{" "}
                           Log Out
