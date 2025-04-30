@@ -50,13 +50,32 @@ export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
 // Action pour récupérer l'utilisateur
 export const fetchMe = createAsyncThunk('auth/me', async (_, thunkAPI) => {
   try {
-    const state = thunkAPI.getState().auth;
+    // Récupérer le token depuis le localStorage
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      throw new Error('Aucun utilisateur connecté');
+    }
+    
+    const userData = JSON.parse(storedUser);
+    const { access_token } = userData;
+    if (!access_token) {
+      throw new Error('Token non trouvé');
+    }
+
     const response = await api.get('/me', {
-      headers: { Authorization: `Bearer ${state.token}` }  
+      headers: { Authorization: `Bearer ${access_token}` }  
     });
-    return response.data;  
+
+    // Retourner toutes les informations nécessaires
+    return {
+      user: response.data,
+      access_token: access_token,
+      roles: userData.roles || []
+    };
   } catch (error) {
-    return thunkAPI.rejectWithValue('Impossible de récupérer les infos utilisateur');
+    // En cas d'erreur, nettoyer le localStorage
+    localStorage.removeItem('user');
+    return thunkAPI.rejectWithValue(error.message || 'Impossible de récupérer les infos utilisateur');
   }
 });
 
@@ -125,12 +144,17 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.roles = action.payload.roles;
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
+        state.user = null;
+        state.token = null;
+        state.roles = [];
       });
   }
 });
