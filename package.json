@@ -10,6 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/react": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
     "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "^2.7.0",
     "axios": "^1.9.0",
@@ -17,13 +21,15 @@
     "datatables.net-buttons-dt": "^3.2.3",
     "datatables.net-dt": "^2.2.2",
     "datatables.net-responsive-dt": "^3.0.4",
+    "flatpickr": "^4.6.13",
     "jquery": "^3.7.1",
     "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.3",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "sweetalert2": "^11.19.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

@@ -4,6 +4,8 @@ import { Route, Routes } from 'react-router-dom'
 import Login from './Pages/Login'
 import TableDataLayer from './Components/TableDataLayer'
 import Dashboard from './Pages/Dashboard'
+import ViewProfileLayer from './Pages/ViewProfileLayer'
+import Forms from './Components/Forms'
 
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
       {/* Routes protégées avec MasterLayout */}
       <Route element={<MasterLayout />}>
         <Route path="/" element={<TableDataLayer />} />
+        <Route path="/view-profile" element={<ViewProfileLayer />} />
+        <Route path="/form" element={<Forms />} />
         {/* Ajoutez d'autres routes protégées ici */}
       </Route>
       <Route path='/dashboard' element={<Dashboard/>} />
