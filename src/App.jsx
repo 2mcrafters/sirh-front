@@ -1,18 +1,16 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-// import './App.css'
+
 import MasterLayout from './masterLayout/MasterLayout'
 import { Route, Routes } from 'react-router-dom'
 import Login from './Pages/Login'
 import TableDataLayer from './Components/TableDataLayer'
-import ViewProfileLayer from './Pages/ViewProfileLayer'
-import Forms from './Components/Forms'
+import Dashboard from './Pages/Dashboard'
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  
 
   return (
+
     <Routes>
       {/* Route publique */}
       <Route path="/login" element={<Login />} />
@@ -24,7 +22,9 @@ function App() {
         <Route path="/form" element={<Forms />} />
         {/* Ajoutez d'autres routes protégées ici */}
       </Route>
+      <Route path='/dashboard' element={<Dashboard/>} />
     </Routes>
+
   )
 }
 
