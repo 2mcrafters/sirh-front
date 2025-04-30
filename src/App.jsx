@@ -1,9 +1,9 @@
 
-// import './App.css'
 import MasterLayout from './masterLayout/MasterLayout'
 import { Route, Routes } from 'react-router-dom'
 import Login from './Pages/Login'
 import TableDataLayer from './Components/TableDataLayer'
+import Dashboard from './Pages/Dashboard'
 
 
 function App() {
@@ -20,6 +20,7 @@ function App() {
         <Route path="/" element={<TableDataLayer />} />
         {/* Ajoutez d'autres routes protégées ici */}
       </Route>
+      <Route path='/dashboard' element={<Dashboard/>} />
     </Routes>
 
   )

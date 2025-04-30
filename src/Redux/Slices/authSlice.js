@@ -1,8 +1,6 @@
-// features/auth/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../config/axios';  // Import de votre instance Axios
+import api from '../../config/axios';  
 
-// État initial
 const initialState = {
   user: null,
   token: null,
@@ -13,48 +11,50 @@ const initialState = {
   message: ''
 };
 
-// Thunks pour les appels API (création des actions asynchrones)
 
 export const register = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
   try {
-    const response = await api.post('/register', userData);  // Utiliser Axios
-    localStorage.setItem('user', JSON.stringify(response.data));  // Sauvegarder l'utilisateur dans le stockage local
-    return response.data;  // Retourner la réponse de l'API
+    const response = await api.post('/register', userData);  
+    localStorage.setItem('user', JSON.stringify(response.data));  
+    return response.data;  
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Erreur d’inscription');
   }
 });
 
+// Action pour la connexion
 export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
   try {
-    const response = await api.post('/login', credentials);  // Utiliser Axios
-    localStorage.setItem('user', JSON.stringify(response.data));  // Sauvegarder l'utilisateur dans le stockage local
-    return response.data;  // Retourner la réponse de l'API
+    const response = await api.post('/login', credentials);  
+    localStorage.setItem('user', JSON.stringify(response.data));  
+    return response.data;  
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Erreur de connexion');
   }
 });
 
+// Action pour la déconnexion
 export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
     const state = thunkAPI.getState().auth;
     await api.post('/logout', {}, {
-      headers: { Authorization: `Bearer ${state.token}` }  // Utiliser le token d'authentification
+      headers: { Authorization: `Bearer ${state.token}` }  
     });
     localStorage.removeItem('user');
-    return null;  // Retourner null lors de la déconnexion
+    return null;  
   } catch (error) {
     return thunkAPI.rejectWithValue('Erreur lors de la déconnexion');
   }
 });
 
+// Action pour récupérer l'utilisateur
 export const fetchMe = createAsyncThunk('auth/me', async (_, thunkAPI) => {
   try {
     const state = thunkAPI.getState().auth;
     const response = await api.get('/me', {
-      headers: { Authorization: `Bearer ${state.token}` }  // Utiliser le token d'authentification
+      headers: { Authorization: `Bearer ${state.token}` }  
     });
-    return response.data;  // Retourner les données utilisateur
+    return response.data;  
   } catch (error) {
     return thunkAPI.rejectWithValue('Impossible de récupérer les infos utilisateur');
   }
@@ -89,7 +89,6 @@ const authSlice = createSlice({
         state.isError = true;
         state.message = action.payload;
       })
-      
       .addCase(login.pending, (state) => {
         state.isLoading = true;
       })
@@ -105,7 +104,6 @@ const authSlice = createSlice({
         state.isError = true;
         state.message = action.payload;
       })
-      
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
       })
@@ -121,7 +119,6 @@ const authSlice = createSlice({
         state.isError = true;
         state.message = action.payload;
       })
-
       .addCase(fetchMe.pending, (state) => {
         state.isLoading = true;
       })
