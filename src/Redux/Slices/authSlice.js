@@ -1,140 +1,164 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../config/axios';  
 
-// Async thunks
-export const login = createAsyncThunk(
-  'auth/login',
-  async (credentials) => {
-    const response = await axios.post('/api/login', credentials);
-    const { access_token, user, roles } = response.data;
-    
-    // Store token in localStorage
-    localStorage.setItem('token', access_token);
-    
-    // Set default axios header
-    axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-    
-    return { user, roles };
+const initialState = {
+  user: null,
+  token: null,
+  roles: [],
+  isLoading: false,
+  isSuccess: false,
+  isError: false,
+  message: ''
+};
+
+
+export const register = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
+  try {
+    const response = await api.post('/register', userData);  
+    localStorage.setItem('user', JSON.stringify(response.data));  
+    return response.data;  
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Erreur d’inscription');
   }
-);
+});
 
-export const register = createAsyncThunk(
-  'auth/register',
-  async (userData) => {
-    const response = await axios.post('/api/register', userData);
-    const { access_token, user, roles } = response.data;
+// Action pour la connexion
+export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
+  try {
+    const response = await api.post('/login', credentials);  
+    localStorage.setItem('user', JSON.stringify(response.data));  
+    return response.data;  
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || 'Erreur de connexion');
+  }
+});
+
+// Action pour la déconnexion
+export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
+  try {
+    const state = thunkAPI.getState().auth;
+    await api.post('/logout', {}, {
+      headers: { Authorization: `Bearer ${state.token}` }  
+    });
+    localStorage.removeItem('user');
+    return null;  
+  } catch (error) {
+    return thunkAPI.rejectWithValue('Erreur lors de la déconnexion');
+  }
+});
+
+// Action pour récupérer l'utilisateur
+export const fetchMe = createAsyncThunk('auth/me', async (_, thunkAPI) => {
+  try {
+    // Récupérer le token depuis le localStorage
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      throw new Error('Aucun utilisateur connecté');
+    }
     
-    // Store token in localStorage
-    localStorage.setItem('token', access_token);
-    
-    // Set default axios header
-    axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-    
-    return { user, roles };
-  }
-);
+    const userData = JSON.parse(storedUser);
+    const { access_token } = userData;
+    if (!access_token) {
+      throw new Error('Token non trouvé');
+    }
 
-export const logout = createAsyncThunk(
-  'auth/logout',
-  async () => {
-    await axios.post('/api/logout');
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-  }
-);
+    const response = await api.get('/me', {
+      headers: { Authorization: `Bearer ${access_token}` }  
+    });
 
-export const getCurrentUser = createAsyncThunk(
-  'auth/getCurrentUser',
-  async () => {
-    const response = await axios.get('/api/me');
-    return response.data;
+    // Retourner toutes les informations nécessaires
+    return {
+      user: response.data,
+      access_token: access_token,
+      roles: userData.roles || []
+    };
+  } catch (error) {
+    // En cas d'erreur, nettoyer le localStorage
+    localStorage.removeItem('user');
+    return thunkAPI.rejectWithValue(error.message || 'Impossible de récupérer les infos utilisateur');
   }
-);
+});
 
-export const assignRole = createAsyncThunk(
-  'auth/assignRole',
-  async ({ userId, role }) => {
-    const response = await axios.post('/api/assign-role', { user_id: userId, role });
-    return response.data;
-  }
-);
-
+// Slice Redux pour l'authentification
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    user: null,
-    roles: [],
-    status: 'idle',
-    error: null,
-    isAuthenticated: false
-  },
+  initialState,
   reducers: {
-    clearError: (state) => {
-      state.error = null;
+    resetState: (state) => {
+      state.isLoading = false;
+      state.isSuccess = false;
+      state.isError = false;
+      state.message = '';
     }
   },
   extraReducers: (builder) => {
     builder
-      // Login
-      .addCase(login.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(login.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user = action.payload.user;
-        state.roles = action.payload.roles;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.error.message;
-        state.isAuthenticated = false;
-      })
-      // Register
       .addCase(register.pending, (state) => {
-        state.status = 'loading';
+        state.isLoading = true;
       })
       .addCase(register.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.isLoading = false;
+        state.isSuccess = true;
         state.user = action.payload.user;
+        state.token = action.payload.access_token;
         state.roles = action.payload.roles;
-        state.isAuthenticated = true;
-        state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.error.message;
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       })
-      // Logout
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.roles = action.payload.roles;
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(logout.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(logout.fulfilled, (state) => {
+        state.isLoading = false;
+        state.isSuccess = true;
         state.user = null;
+        state.token = null;
         state.roles = [];
-        state.isAuthenticated = false;
-        state.status = 'idle';
       })
-      // Get Current User
-      .addCase(getCurrentUser.pending, (state) => {
-        state.status = 'loading';
+      .addCase(logout.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
       })
-      .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user = action.payload;
-        state.isAuthenticated = true;
+      .addCase(fetchMe.pending, (state) => {
+        state.isLoading = true;
       })
-      .addCase(getCurrentUser.rejected, (state) => {
-        state.status = 'failed';
-        state.isAuthenticated = false;
+      .addCase(fetchMe.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user = action.payload.user;
+        state.token = action.payload.access_token;
+        state.roles = action.payload.roles;
       })
-      // Assign Role
-      .addCase(assignRole.fulfilled, (state, action) => {
-        if (state.user && state.user.id === action.payload.user.id) {
-          state.user = action.payload.user;
-          state.roles = action.payload.roles;
-        }
+      .addCase(fetchMe.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        state.user = null;
+        state.token = null;
+        state.roles = [];
       });
   }
 });
 
-export const { clearError } = authSlice.actions;
+export const { resetState } = authSlice.actions;
+
 export default authSlice.reducer;
