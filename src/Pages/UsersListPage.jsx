@@ -285,6 +285,7 @@ const UsersListPage = () => {
                 <th>Email</th>
                 <th>Rôle</th>
                 <th>Département</th>
+                <th>Statut</th>
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
@@ -306,6 +307,7 @@ const UsersListPage = () => {
                     <td>{user.email}</td>
                     <td>{user.role}</td>
                     <td>{department ? department.nom : 'Non assigné'}</td>
+                    <td>{user.statut}</td>
                     <td className="text-end">
                       <div className="d-flex justify-content-end gap-2">
                         <button

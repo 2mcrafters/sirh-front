@@ -15,11 +15,20 @@ export const fetchPointages = createAsyncThunk(
   }
 );
 
+// Helper function to clean time fields
+const cleanTimeFields = (data) => {
+  const cleanedData = { ...data };
+  if (cleanedData.heureEntree === '') cleanedData.heureEntree = null;
+  if (cleanedData.heureSortie === '') cleanedData.heureSortie = null;
+  return cleanedData;
+};
+
 export const createPointage = createAsyncThunk(
   'pointages/createPointage',
   async (pointageData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.POINTAGES.BASE, pointageData);
+      const cleanedData = cleanTimeFields(pointageData);
+      const response = await axios.post(API_ENDPOINTS.POINTAGES.BASE, cleanedData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -31,7 +40,8 @@ export const updatePointage = createAsyncThunk(
   'pointages/updatePointage',
   async ({ id, ...pointageData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(API_ENDPOINTS.POINTAGES.BY_ID(id), pointageData);
+      const cleanedData = cleanTimeFields(pointageData);
+      const response = await axios.put(API_ENDPOINTS.POINTAGES.BASE, [{ id, ...cleanedData }]);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -90,11 +100,12 @@ const pointageSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(updatePointage.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        const index = state.items.findIndex(p => p.id === action.payload.id);
+        const { id, ...updatedPointage } = action.payload;
+        const index = state.items.findIndex(pointage => pointage.id === id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items[index] = { ...state.items[index], ...updatedPointage };
         }
+        state.status = 'succeeded';
       })
       .addCase(updatePointage.rejected, (state, action) => {
         state.status = 'failed';

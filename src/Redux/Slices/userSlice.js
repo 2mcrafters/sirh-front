@@ -23,10 +23,51 @@ export const createUser = createAsyncThunk(
   'users/createUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.USERS.BASE, userData);
+      // Format the data as expected by the backend
+      const formattedData = {
+        name: userData.name,
+        cin: userData.cin,
+        rib: userData.rib,
+        situationFamiliale: userData.situationFamiliale,
+        nbEnfants: parseInt(userData.nbEnfants),
+        adresse: userData.adresse,
+        prenom: userData.prenom,
+        tel: userData.tel,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role,
+        typeContrat: userData.typeContrat,
+        date_naissance: userData.date_naissance,
+        statut: userData.statut,
+        departement_id: parseInt(userData.departement_id)
+      };
+
+      // Handle picture upload
+      if (userData.picture) {
+        if (typeof userData.picture === 'string') {
+          formattedData.picture = userData.picture;
+        } else {
+          // If it's a File object, create FormData
+          const formData = new FormData();
+          Object.keys(formattedData).forEach(key => {
+            formData.append(key, formattedData[key]);
+          });
+          formData.append('picture', userData.picture);
+          
+          const response = await axios.post(API_ENDPOINTS.USERS.BASE, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          return response.data;
+        }
+      }
+
+      const response = await axios.post(API_ENDPOINTS.USERS.BASE, formattedData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      console.error('Error creating user:', error.response?.data);
+      return rejectWithValue(error.response?.data);
     }
   }
 );
@@ -41,7 +82,7 @@ export const updateUser = createAsyncThunk(
         cin: userData.cin,
         rib: userData.rib,
         situationFamiliale: userData.situationFamiliale,
-        nbEnfants: userData.nbEnfants,
+        nbEnfants: parseInt(userData.nbEnfants),
         adresse: userData.adresse,
         name: userData.name,
         prenom: userData.prenom,
@@ -51,14 +92,35 @@ export const updateUser = createAsyncThunk(
         typeContrat: userData.typeContrat,
         date_naissance: userData.date_naissance,
         statut: userData.statut,
-        departement_id: userData.departement_id,
-        profile_picture: userData.profile_picture || null
+        departement_id: parseInt(userData.departement_id)
       }];
+
+      // Handle picture upload
+      if (userData.picture) {
+        if (typeof userData.picture === 'string') {
+          formattedData[0].picture = userData.picture;
+        } else {
+          // If it's a File object, create FormData
+          const formData = new FormData();
+          Object.keys(formattedData[0]).forEach(key => {
+            formData.append(key, formattedData[0][key]);
+          });
+          formData.append('picture', userData.picture);
+          
+          const response = await axios.put(API_ENDPOINTS.USERS.BASE, [formData], {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          return response.data;
+        }
+      }
 
       const response = await axios.put(API_ENDPOINTS.USERS.BASE, formattedData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      console.error('Error updating user:', error.response?.data);
+      return rejectWithValue(error.response?.data);
     }
   }
 );

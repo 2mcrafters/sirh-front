@@ -206,6 +206,42 @@ const MasterLayout = () => {
                   </li>
                 </ul>
               </li>
+
+              {/* Pointages Dropdown */}
+              <li className='dropdown'>
+                <Link to='#'>
+                  <Icon
+                    icon='mdi:clock-outline'
+                    className='menu-icon'
+                  />
+                  <span>Pointages</span>
+                </Link>
+                <ul className='sidebar-submenu'>
+                  <li>
+                    <NavLink
+                      to='/pointages'
+                      className={(navData) =>
+                        navData.isActive ? "active-page" : ""
+                      }
+                    >
+                      <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />
+                      Liste des Pointages
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to='/pointages/add'
+                      className={(navData) =>
+                        navData.isActive ? "active-page" : ""
+                      }
+                    >
+                      <i className='ri-circle-fill circle-icon text-success-main w-auto' />
+                      Ajouter un Pointage
+                    </NavLink>
+                  </li>
+                </ul>
+              </li>
+
             <li className='dropdown'>
               <Link to='#'>
                 <Icon

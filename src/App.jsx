@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
-import { store } from './Redux/store';
+import store from './Redux/store';
 import AppRoutes from './routes';
 import { getCurrentUser } from './Redux/Slices/authSlice';
 

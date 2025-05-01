@@ -50,16 +50,16 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
     date_naissance: Yup.date().required('La date de naissance est requise'),
     statut: Yup.string()
       .required('Le statut est requis')
-      .oneOf(['Présent', 'Absent', 'Congé', 'Maladie'], 'Statut invalide'),
+      .oneOf(['Actif', 'Inactif', 'Congé', 'Malade'], 'Statut invalide'),
     departement_id: Yup.string().required('Le département est requis'),
-    profile_picture: Yup.mixed()
+    picture: Yup.mixed()
       .nullable()
       .test('fileSize', 'Le fichier est trop volumineux (max 2MB)', value => {
-        if (!value) return true;
-        return value.size <= 2048 * 2048;
+        if (!value || typeof value === 'string') return true;
+        return value.size <= 2048 * 1024;
       })
       .test('fileType', 'Format de fichier non supporté', value => {
-        if (!value) return true;
+        if (!value || typeof value === 'string') return true;
         return ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(value.type);
       }),
   });
@@ -85,20 +85,28 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
         departement_id: values.departement_id
       };
 
-      // Only add profile_picture if it exists
-      if (values.profile_picture) {
-        formattedData.profile_picture = values.profile_picture;
+      // Only add picture if it exists
+      if (values.picture) {
+        formattedData.picture = values.picture;
       }
 
       if (isEdit) {
         await dispatch(updateUser({ id: initialValues.id, ...formattedData }));
       } else {
-        await dispatch(createUser(formattedData));
+        try {
+          await dispatch(createUser(formattedData));
+        } catch (error) {
+          console.error('Server validation error:', error.payload);
+          throw error;
+        }
       }
       resetForm();
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
+      if (error.payload) {
+        alert('Validation Error: ' + JSON.stringify(error.payload));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -120,9 +128,9 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
         role: 'EMPLOYE',
         typeContrat: 'Permanent',
         date_naissance: '',
-        statut: 'Présent',
+        statut: 'Actif',
         departement_id: '',
-        profile_picture: null,
+        picture: null,
         ...initialValues
       }}
       validationSchema={validationSchema}
@@ -323,10 +331,10 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
                   id="statut"
                   className="form-select"
                 >
-                  <option value="Présent">Présent</option>
-                  <option value="Absent">Absent</option>
+                  <option value="Actif">Actif</option>
+                  <option value="Inactif">Inactif</option>
                   <option value="Congé">Congé</option>
-                  <option value="Maladie">Maladie</option>
+                  <option value="Malade">Malade</option>
                 </Field>
                 <ErrorMessage name="statut" component="div" className="text-danger" />
               </div>
@@ -352,17 +360,17 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
           </div>
 
           <div className="mb-3">
-            <label htmlFor="profile_picture" className="form-label">Photo de Profil</label>
+            <label htmlFor="picture" className="form-label">Photo de Profil</label>
             <input
               type="file"
-              name="profile_picture"
-              id="profile_picture"
+              name="picture"
+              id="picture"
               className="form-control"
               onChange={(event) => {
-                setFieldValue("profile_picture", event.currentTarget.files[0]);
+                setFieldValue("picture", event.currentTarget.files[0]);
               }}
             />
-            <ErrorMessage name="profile_picture" component="div" className="text-danger" />
+            <ErrorMessage name="picture" component="div" className="text-danger" />
           </div>
 
           <div className="text-end">

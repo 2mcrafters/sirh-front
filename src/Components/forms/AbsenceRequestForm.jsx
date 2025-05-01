@@ -27,14 +27,15 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
     motif: Yup.string().nullable(),
     justification: Yup.mixed()
       .nullable()
-      .test('fileSize', 'Le fichier est trop volumineux (max 1MB)', value => {
-        if (!value) return true;
-        return value.size <= 1024 * 1024;
+      .test('fileSize', 'Le fichier est trop volumineux (max 2MB)', value => {
+        if (!value || typeof value === 'string') return true;
+        return value.size <= 2048 * 1024;
       })
       .test('fileType', 'Format de fichier non supporté', value => {
-        if (!value) return true;
+        if (!value || typeof value === 'string') return true;
         return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type);
       }),
+
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {

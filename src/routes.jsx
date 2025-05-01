@@ -1,15 +1,18 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MasterLayout from './masterLayout/MasterLayout';
-import Dashboard from './pages/Dashboard';
-import BulkAddDepartmentPage from './pages/BulkAddDepartmentPage';
-import DepartmentsListPage from './pages/DepartmentsListPage';
-import EditDepartmentPage from './pages/EditDepartmentPage';
-import UsersListPage from './pages/UsersListPage';
-import UserFormPage from './pages/UserFormPage';
-import AbsenceRequestsListPage from './pages/AbsenceRequestsListPage';
-import AddAbsenceRequestPage from './pages/AddAbsenceRequestPage';
-import EditAbsenceRequestPage from './pages/EditAbsenceRequestPage';
+import Dashboard from './Pages/Dashboard';
+import BulkAddDepartmentPage from './Pages/BulkAddDepartmentPage';
+import DepartmentsListPage from './Pages/DepartmentsListPage';
+import EditDepartmentPage from './Pages/EditDepartmentPage';
+import UsersListPage from './Pages/UsersListPage';
+import UserFormPage from './Pages/UserFormPage';
+import AbsenceRequestsListPage from './Pages/AbsenceRequestsListPage';
+import AddAbsenceRequestPage from './Pages/AddAbsenceRequestPage';
+import EditAbsenceRequestPage from './Pages/EditAbsenceRequestPage';
+import PointagesListPage from './Pages/PointagesListPage';
+import AddPointagePage from './Pages/AddPointagePage';
+import EditPointagePage from './Pages/EditPointagePage';
 
 const AppRoutes = () => {
   return (
@@ -25,6 +28,9 @@ const AppRoutes = () => {
         <Route path="absences" element={<AbsenceRequestsListPage />} />
         <Route path="absences/add" element={<AddAbsenceRequestPage />} />
         <Route path="absences/:id/edit" element={<EditAbsenceRequestPage />} />
+        <Route path="pointages" element={<PointagesListPage />} />
+        <Route path="pointages/add" element={<AddPointagePage />} />
+        <Route path="pointages/:id/edit" element={<EditPointagePage />} />
       </Route>
     </Routes>
   );
