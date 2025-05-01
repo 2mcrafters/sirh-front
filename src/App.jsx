@@ -5,7 +5,8 @@ import TableDataLayer from './Components/TableDataLayer'
 import Dashboard from './Pages/Dashboard'
 import ViewProfileLayer from './Pages/ViewProfileLayer'
 import { AuthProvider } from './context/AuthContext'
-
+import PresenceDashboard from './Components/Statistique/PresenceDashboard'
+import "./degrade.css"
 
 function App() {
   
@@ -21,7 +22,8 @@ function App() {
           <Route path="/" element={<TableDataLayer />} />
           <Route path="/view-profile" element={<ViewProfileLayer />} />
           <Route path='/dashboard' element={<Dashboard/>} />
-        </Route>
+          <Route path='/statistiques' element={<PresenceDashboard/>} />
+          </Route>
       </Routes>
     </AuthProvider>
   )

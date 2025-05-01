@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import PresenceStatsChart from '../Components/PresenceStatsChart';
+import PresenceStatsChart from '../Components/StatsChart';
 
 const Dashboard = () => {
   const { user, roles } = useSelector((state) => state.auth);
