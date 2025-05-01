@@ -124,12 +124,12 @@ const PresenceDashboard = () => {
               />
             </div>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div className="bg-white p-4 rounded-lg shadow">
+            <div className="mt-10 d-flex flex-wrap justify-content-between gap-3">
+  <div className="bg-white p-4 rounded-lg shadow flex-grow-1" style={{ flexBasis: '300px', maxWidth: '600px' }}>
     <h3 className="text-lg font-semibold mb-4">Répartition en pourcentage</h3>
     <PresenceChart data={chartData} />
   </div>
-  <div className="bg-white p-4 rounded-lg shadow">
+  <div className="bg-white p-4 rounded-lg shadow flex-grow-1" style={{ flexBasis: '300px', maxWidth: '600px' }}>
     <h3 className="text-lg font-semibold mb-4">Nombre d'employés par statut</h3>
     <PresenceBarChart data={chartData} />
   </div>
