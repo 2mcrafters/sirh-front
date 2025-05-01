@@ -4,8 +4,8 @@ import Login from './Pages/Login'
 import TableDataLayer from './Components/TableDataLayer'
 import Dashboard from './Pages/Dashboard'
 import ViewProfileLayer from './Pages/ViewProfileLayer'
-import Forms from './Components/Forms'
 import { AuthProvider } from './context/AuthContext'
+
 
 function App() {
   
@@ -20,10 +20,7 @@ function App() {
         <Route element={<MasterLayout />}>
           <Route path="/" element={<TableDataLayer />} />
           <Route path="/view-profile" element={<ViewProfileLayer />} />
-          <Route path="/form" element={<Forms />} />
           <Route path='/dashboard' element={<Dashboard/>} />
-
-          {/* Ajoutez d'autres routes protégées ici */}
         </Route>
       </Routes>
     </AuthProvider>

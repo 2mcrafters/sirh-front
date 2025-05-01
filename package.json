@@ -22,14 +22,17 @@
     "datatables.net-dt": "^2.2.2",
     "datatables.net-responsive-dt": "^3.0.4",
     "flatpickr": "^4.6.13",
+    "formik": "^2.4.6",
     "jquery": "^3.7.1",
     "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.3",
     "react-toastify": "^11.0.5",
-    "sweetalert2": "^11.19.1"
+    "sweetalert2": "^11.19.1",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
