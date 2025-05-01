@@ -26,6 +26,7 @@ const validationSchema = Yup.object().shape({
     }),
   statutJour: Yup.string().required('Le statut est requis'),
   overtimeHours: Yup.number().min(0, 'Les heures supplémentaires doivent être positives').nullable(),
+  role: Yup.string().nullable(),
 });
 
 const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
@@ -39,7 +40,6 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      // Format time values
       const formattedValues = {
         ...values,
         heureEntree: values.statutJour === 'absent' ? null : (values.heureEntree ? values.heureEntree.slice(0, 5) : null),
@@ -47,12 +47,12 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
       };
 
       if (isEdit) {
-        // Only include changed fields
         const changedValues = {
           id: initialValues.id,
           statutJour: formattedValues.statutJour,
           heureEntree: formattedValues.heureEntree,
-          heureSortie: formattedValues.heureSortie
+          heureSortie: formattedValues.heureSortie,
+          role: values.role || initialValues.role,
         };
 
         await dispatch(updatePointage(changedValues)).unwrap();
@@ -85,6 +85,7 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
             heureSortie: initialValues.heureSortie || '',
             statutJour: initialValues.statutJour || 'present',
             overtimeHours: initialValues.overtimeHours || 0,
+            role: initialValues.role || '',
           }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
@@ -177,6 +178,21 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
                     className={`form-control ${errors.overtimeHours && touched.overtimeHours ? 'is-invalid' : ''}`}
                   />
                   <ErrorMessage name="overtimeHours" component="div" className="invalid-feedback" />
+                </div>
+
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Rôle</label>
+                  <Field
+                    as="select"
+                    name="role"
+                    className={`form-select ${errors.role && touched.role ? 'is-invalid' : ''}`}
+                  >
+                    <option value="">Sélectionner un rôle</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">Utilisateur</option>
+                    <option value="manager">Manager</option>
+                  </Field>
+                  <ErrorMessage name="role" component="div" className="invalid-feedback" />
                 </div>
               </div>
 

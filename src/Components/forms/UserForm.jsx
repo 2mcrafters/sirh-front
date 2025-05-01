@@ -42,15 +42,22 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
       .required('Le mot de passe est requis')
       .min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
     role: Yup.string()
-      .required('Le rôle est requis')
-      .oneOf(['EMPLOYE', 'CHEF_DEP', 'RH'], 'Rôle invalide'),
+      .oneOf(['Employe', 'Chef_Dep', 'RH', ''], 'Rôle invalide')
+      .test('role-validation', 'Rôle invalide', function(value) {
+        if (isEdit) {
+          // In edit mode, allow empty value to keep existing role
+          return true;
+        }
+        // In create mode, require a valid role
+        return ['Employe', 'Chef_Dep', 'RH'].includes(value);
+      }),
     typeContrat: Yup.string()
       .required('Le type de contrat est requis')
       .oneOf(['Permanent', 'Temporaire'], 'Type de contrat invalide'),
     date_naissance: Yup.date().required('La date de naissance est requise'),
-    statut: Yup.string()
+    statut: isEdit ? Yup.string()
       .required('Le statut est requis')
-      .oneOf(['Actif', 'Inactif', 'Congé', 'Malade'], 'Statut invalide'),
+      .oneOf(['Actif', 'Inactif', 'Congé', 'Malade'], 'Statut invalide') : Yup.string(),
     departement_id: Yup.string().required('Le département est requis'),
     picture: Yup.mixed()
       .nullable()
@@ -78,27 +85,34 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
         tel: values.tel,
         email: values.email,
         password: values.password,
-        role: values.role,
+        role: isEdit ? (values.role || initialValues.role) : values.role,
         typeContrat: values.typeContrat,
         date_naissance: values.date_naissance,
-        statut: values.statut,
+        statut: isEdit ? values.statut : 'Actif',
         departement_id: values.departement_id
       };
 
-      // Only add picture if it exists
-      if (values.picture) {
-        formattedData.picture = values.picture;
+      // Handle picture field
+      if (isEdit) {
+        // For editing, only include picture if it's a new file
+        if (values.picture && values.picture instanceof File) {
+          formattedData.picture = values.picture;
+        } else if (values.picture === null) {
+          // If picture is explicitly set to null, pass it as null
+          formattedData.picture = null;
+        }
+        // If picture is a string (existing URL) or undefined, don't include it in the update
+      } else {
+        // For new users, include picture if it exists
+        if (values.picture) {
+          formattedData.picture = values.picture;
+        }
       }
 
       if (isEdit) {
         await dispatch(updateUser({ id: initialValues.id, ...formattedData }));
       } else {
-        try {
-          await dispatch(createUser(formattedData));
-        } catch (error) {
-          console.error('Server validation error:', error.payload);
-          throw error;
-        }
+        await dispatch(createUser(formattedData));
       }
       resetForm();
       if (onSuccess) onSuccess();
@@ -125,7 +139,7 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
         tel: '',
         email: '',
         password: '',
-        role: 'EMPLOYE',
+        role: isEdit ? initialValues.role : 'Employe',
         typeContrat: 'Permanent',
         date_naissance: '',
         statut: 'Actif',
@@ -285,8 +299,9 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
                   id="role"
                   className="form-select"
                 >
-                  <option value="EMPLOYE">Employé</option>
-                  <option value="CHEF_DEP">Chef de Département</option>
+                  {!isEdit && <option value="">Sélectionner un rôle</option>}
+                  <option value="Employe">Employé</option>
+                  <option value="Chef_Dep">Chef de Département</option>
                   <option value="RH">Ressources Humaines</option>
                 </Field>
                 <ErrorMessage name="role" component="div" className="text-danger" />
@@ -322,23 +337,25 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
                 <ErrorMessage name="date_naissance" component="div" className="text-danger" />
               </div>
             </div>
-            <div className="col-md-6">
-              <div className="mb-3">
-                <label htmlFor="statut" className="form-label">Statut</label>
-                <Field
-                  as="select"
-                  name="statut"
-                  id="statut"
-                  className="form-select"
-                >
-                  <option value="Actif">Actif</option>
-                  <option value="Inactif">Inactif</option>
-                  <option value="Congé">Congé</option>
-                  <option value="Malade">Malade</option>
-                </Field>
-                <ErrorMessage name="statut" component="div" className="text-danger" />
+            {isEdit && (
+              <div className="col-md-6">
+                <div className="mb-3">
+                  <label htmlFor="statut" className="form-label">Statut</label>
+                  <Field
+                    as="select"
+                    name="statut"
+                    id="statut"
+                    className="form-select"
+                  >
+                    <option value="Actif">Actif</option>
+                    <option value="Inactif">Inactif</option>
+                    <option value="Congé">Congé</option>
+                    <option value="Malade">Malade</option>
+                  </Field>
+                  <ErrorMessage name="statut" component="div" className="text-danger" />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="mb-3">
