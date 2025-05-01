@@ -26,7 +26,7 @@ const validationSchema = Yup.object().shape({
     }),
   statutJour: Yup.string().required('Le statut est requis'),
   overtimeHours: Yup.number().min(0, 'Les heures supplémentaires doivent être positives').nullable(),
-  role: Yup.string().nullable(),
+  
 });
 
 const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
@@ -52,7 +52,7 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
           statutJour: formattedValues.statutJour,
           heureEntree: formattedValues.heureEntree,
           heureSortie: formattedValues.heureSortie,
-          role: values.role || initialValues.role,
+          
         };
 
         await dispatch(updatePointage(changedValues)).unwrap();
@@ -85,7 +85,7 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
             heureSortie: initialValues.heureSortie || '',
             statutJour: initialValues.statutJour || 'present',
             overtimeHours: initialValues.overtimeHours || 0,
-            role: initialValues.role || '',
+            
           }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
@@ -180,20 +180,7 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
                   <ErrorMessage name="overtimeHours" component="div" className="invalid-feedback" />
                 </div>
 
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Rôle</label>
-                  <Field
-                    as="select"
-                    name="role"
-                    className={`form-select ${errors.role && touched.role ? 'is-invalid' : ''}`}
-                  >
-                    <option value="">Sélectionner un rôle</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">Utilisateur</option>
-                    <option value="manager">Manager</option>
-                  </Field>
-                  <ErrorMessage name="role" component="div" className="invalid-feedback" />
-                </div>
+                
               </div>
 
               <div className="d-flex justify-content-end gap-2">
