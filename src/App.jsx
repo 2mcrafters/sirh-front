@@ -1,33 +1,23 @@
+import React, { useEffect } from 'react';
+import { Provider } from 'react-redux';
+import { store } from './Redux/store';
+import AppRoutes from './routes';
+import { getCurrentUser } from './Redux/Slices/authSlice';
 
-import MasterLayout from './masterLayout/MasterLayout'
-import { Route, Routes } from 'react-router-dom'
-import Login from './Pages/Login'
-import TableDataLayer from './Components/TableDataLayer'
-import Dashboard from './Pages/Dashboard'
-import ViewProfileLayer from './Pages/ViewProfileLayer'
-import Forms from './Components/Forms'
-
-function App() {
-  
+const App = () => {
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      store.dispatch(getCurrentUser());
+    }
+  }, []);
 
   return (
+    <Provider store={store}>
+      <AppRoutes />
+    </Provider>
+  );
+};
 
-    <Routes>
-      {/* Route publique */}
-      <Route path="/login" element={<Login />} />
-
-      {/* Routes protégées avec MasterLayout */}
-      <Route element={<MasterLayout />}>
-        <Route path="/" element={<TableDataLayer />} />
-        <Route path="/view-profile" element={<ViewProfileLayer />} />
-        <Route path="/form" element={<Forms />} />
-      <Route path='/dashboard' element={<Dashboard/>} />
-
-        {/* Ajoutez d'autres routes protégées ici */}
-      </Route>
-    </Routes>
-
-  )
-}
-
-export default App
+export default App;

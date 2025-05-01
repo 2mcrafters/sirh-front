@@ -1,0 +1,386 @@
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { createUser, updateUser } from '../../Redux/Slices/userSlice';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { fetchDepartments } from '../../Redux/Slices/departementSlice';
+
+const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
+  const dispatch = useDispatch();
+  const { status } = useSelector(state => state.users);
+  const { items: departments } = useSelector(state => state.departments);
+
+  React.useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
+
+  const validationSchema = Yup.object({
+    cin: Yup.string().required('Le CIN est requis').max(20, 'Le CIN ne doit pas dépasser 20 caractères'),
+    rib: Yup.string().required('Le RIB est requis').max(32, 'Le RIB ne doit pas dépasser 32 caractères'),
+    situationFamiliale: Yup.string()
+      .required('La situation familiale est requise')
+      .oneOf(['Célibataire', 'Marié', 'Divorcé'], 'Situation familiale invalide'),
+    nbEnfants: Yup.number()
+      .required('Le nombre d\'enfants est requis')
+      .min(0, 'Le nombre d\'enfants ne peut pas être négatif'),
+    adresse: Yup.string()
+      .required('L\'adresse est requise')
+      .max(255, 'L\'adresse ne doit pas dépasser 255 caractères'),
+    name: Yup.string()
+      .required('Le nom est requis')
+      .max(50, 'Le nom ne doit pas dépasser 50 caractères'),
+    prenom: Yup.string()
+      .required('Le prénom est requis')
+      .max(50, 'Le prénom ne doit pas dépasser 50 caractères'),
+    tel: Yup.string()
+      .required('Le numéro de téléphone est requis')
+      .max(20, 'Le numéro de téléphone ne doit pas dépasser 20 caractères'),
+    email: Yup.string()
+      .required('L\'email est requis')
+      .email('Email invalide'),
+    password: isEdit ? Yup.string() : Yup.string()
+      .required('Le mot de passe est requis')
+      .min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
+    role: Yup.string()
+      .required('Le rôle est requis')
+      .oneOf(['EMPLOYE', 'CHEF_DEP', 'RH'], 'Rôle invalide'),
+    typeContrat: Yup.string()
+      .required('Le type de contrat est requis')
+      .oneOf(['Permanent', 'Temporaire'], 'Type de contrat invalide'),
+    date_naissance: Yup.date().required('La date de naissance est requise'),
+    statut: Yup.string()
+      .required('Le statut est requis')
+      .oneOf(['Présent', 'Absent', 'Congé', 'Maladie'], 'Statut invalide'),
+    departement_id: Yup.string().required('Le département est requis'),
+    profile_picture: Yup.mixed()
+      .nullable()
+      .test('fileSize', 'Le fichier est trop volumineux (max 2MB)', value => {
+        if (!value) return true;
+        return value.size <= 2048 * 2048;
+      })
+      .test('fileType', 'Format de fichier non supporté', value => {
+        if (!value) return true;
+        return ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(value.type);
+      }),
+  });
+
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      // Format the data as expected by the backend
+      const formattedData = {
+        cin: values.cin,
+        rib: values.rib,
+        situationFamiliale: values.situationFamiliale,
+        nbEnfants: values.nbEnfants,
+        adresse: values.adresse,
+        name: values.name,
+        prenom: values.prenom,
+        tel: values.tel,
+        email: values.email,
+        password: values.password,
+        role: values.role,
+        typeContrat: values.typeContrat,
+        date_naissance: values.date_naissance,
+        statut: values.statut,
+        departement_id: values.departement_id
+      };
+
+      // Only add profile_picture if it exists
+      if (values.profile_picture) {
+        formattedData.profile_picture = values.profile_picture;
+      }
+
+      if (isEdit) {
+        await dispatch(updateUser({ id: initialValues.id, ...formattedData }));
+      } else {
+        await dispatch(createUser(formattedData));
+      }
+      resetForm();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Formik
+      initialValues={{
+        cin: '',
+        rib: '',
+        situationFamiliale: 'Célibataire',
+        nbEnfants: 0,
+        adresse: '',
+        name: '',
+        prenom: '',
+        tel: '',
+        email: '',
+        password: '',
+        role: 'EMPLOYE',
+        typeContrat: 'Permanent',
+        date_naissance: '',
+        statut: 'Présent',
+        departement_id: '',
+        profile_picture: null,
+        ...initialValues
+      }}
+      validationSchema={validationSchema}
+      onSubmit={handleSubmit}
+    >
+      {({ isSubmitting, setFieldValue }) => (
+        <Form className="space-y-4">
+          <div className="row">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="cin" className="form-label">CIN</label>
+                <Field
+                  type="text"
+                  name="cin"
+                  id="cin"
+                  className="form-control"
+                />
+                <ErrorMessage name="cin" component="div" className="text-danger" />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="rib" className="form-label">RIB</label>
+                <Field
+                  type="text"
+                  name="rib"
+                  id="rib"
+                  className="form-control"
+                />
+                <ErrorMessage name="rib" component="div" className="text-danger" />
+              </div>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="situationFamiliale" className="form-label">Situation Familiale</label>
+                <Field
+                  as="select"
+                  name="situationFamiliale"
+                  id="situationFamiliale"
+                  className="form-select"
+                >
+                  <option value="Célibataire">Célibataire</option>
+                  <option value="Marié">Marié</option>
+                  <option value="Divorcé">Divorcé</option>
+                </Field>
+                <ErrorMessage name="situationFamiliale" component="div" className="text-danger" />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="nbEnfants" className="form-label">Nombre d'Enfants</label>
+                <Field
+                  type="number"
+                  name="nbEnfants"
+                  id="nbEnfants"
+                  className="form-control"
+                  min="0"
+                />
+                <ErrorMessage name="nbEnfants" component="div" className="text-danger" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="adresse" className="form-label">Adresse</label>
+            <Field
+              type="text"
+              name="adresse"
+              id="adresse"
+              className="form-control"
+            />
+            <ErrorMessage name="adresse" component="div" className="text-danger" />
+          </div>
+
+          <div className="row">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="name" className="form-label">Nom</label>
+                <Field
+                  type="text"
+                  name="name"
+                  id="name"
+                  className="form-control"
+                />
+                <ErrorMessage name="name" component="div" className="text-danger" />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="prenom" className="form-label">Prénom</label>
+                <Field
+                  type="text"
+                  name="prenom"
+                  id="prenom"
+                  className="form-control"
+                />
+                <ErrorMessage name="prenom" component="div" className="text-danger" />
+              </div>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="tel" className="form-label">Téléphone</label>
+                <Field
+                  type="text"
+                  name="tel"
+                  id="tel"
+                  className="form-control"
+                />
+                <ErrorMessage name="tel" component="div" className="text-danger" />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label">Email</label>
+                <Field
+                  type="email"
+                  name="email"
+                  id="email"
+                  className="form-control"
+                />
+                <ErrorMessage name="email" component="div" className="text-danger" />
+              </div>
+            </div>
+          </div>
+
+          {!isEdit && (
+            <div className="mb-3">
+              <label htmlFor="password" className="form-label">Mot de passe</label>
+              <Field
+                type="password"
+                name="password"
+                id="password"
+                className="form-control"
+              />
+              <ErrorMessage name="password" component="div" className="text-danger" />
+            </div>
+          )}
+
+          <div className="row">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="role" className="form-label">Rôle</label>
+                <Field
+                  as="select"
+                  name="role"
+                  id="role"
+                  className="form-select"
+                >
+                  <option value="EMPLOYE">Employé</option>
+                  <option value="CHEF_DEP">Chef de Département</option>
+                  <option value="RH">Ressources Humaines</option>
+                </Field>
+                <ErrorMessage name="role" component="div" className="text-danger" />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="typeContrat" className="form-label">Type de Contrat</label>
+                <Field
+                  as="select"
+                  name="typeContrat"
+                  id="typeContrat"
+                  className="form-select"
+                >
+                  <option value="Permanent">Permanent</option>
+                  <option value="Temporaire">Temporaire</option>
+                </Field>
+                <ErrorMessage name="typeContrat" component="div" className="text-danger" />
+              </div>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="date_naissance" className="form-label">Date de Naissance</label>
+                <Field
+                  type="date"
+                  name="date_naissance"
+                  id="date_naissance"
+                  className="form-control"
+                />
+                <ErrorMessage name="date_naissance" component="div" className="text-danger" />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="mb-3">
+                <label htmlFor="statut" className="form-label">Statut</label>
+                <Field
+                  as="select"
+                  name="statut"
+                  id="statut"
+                  className="form-select"
+                >
+                  <option value="Présent">Présent</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Congé">Congé</option>
+                  <option value="Maladie">Maladie</option>
+                </Field>
+                <ErrorMessage name="statut" component="div" className="text-danger" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="departement_id" className="form-label">Département</label>
+            <Field
+              as="select"
+              name="departement_id"
+              id="departement_id"
+              className="form-select"
+            >
+              <option value="">Sélectionner un département</option>
+              {departments.map(department => (
+                <option key={department.id} value={department.id}>
+                  {department.nom}
+                </option>
+              ))}
+            </Field>
+            <ErrorMessage name="departement_id" component="div" className="text-danger" />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="profile_picture" className="form-label">Photo de Profil</label>
+            <input
+              type="file"
+              name="profile_picture"
+              id="profile_picture"
+              className="form-control"
+              onChange={(event) => {
+                setFieldValue("profile_picture", event.currentTarget.files[0]);
+              }}
+            />
+            <ErrorMessage name="profile_picture" component="div" className="text-danger" />
+          </div>
+
+          <div className="text-end">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting || status === 'loading'}
+            >
+              {isSubmitting || status === 'loading' ? (
+                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              ) : null}
+              {isEdit ? 'Modifier' : 'Ajouter'}
+            </button>
+          </div>
+        </Form>
+      )}
+    </Formik>
+  );
+};
+
+export default UserForm; 
