@@ -89,14 +89,14 @@ const Login = () => {
               </div>
             </div>
             {isError && (
-              <div className="alert alert-danger radius-12 d-flex align-items-center justify-content-center bg-transparent border-0" role="alert">
-                <Icon icon="mdi:alert-circle" className=" text-danger" />
-                <span className="text-danger text-center">{message}</span>
+              <div className="alert alert-danger mb-4 radius-12 d-flex align-items-center bg-transparent border-0" role="alert">
+                <Icon icon="mdi:alert-circle" className="me-2 text-red-500" />
+                <span className="text-red-500">{message}</span>
               </div>
             )}
             <button
               type='submit'
-              className='btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-2'
+              className='btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32'
               disabled={isLoading}
             >
               {isLoading ? 'Connexion...' : 'Se connecter'}
