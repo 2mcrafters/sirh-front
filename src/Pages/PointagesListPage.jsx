@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchPointages, deletePointages } from '../Redux/Slices/pointageSlice';
+import { fetchPointages, deletePointages, updatePointage, createPointage } from '../Redux/Slices/pointageSlice';
 import { fetchUsers } from '../Redux/Slices/userSlice';
+import { fetchAbsenceRequests } from '../Redux/Slices/absenceRequestSlice';
 import { Icon } from '@iconify/react/dist/iconify.js';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
@@ -15,6 +16,7 @@ const PointagesListPage = () => {
   const navigate = useNavigate();
   const { items: pointages, status: loading, error } = useSelector((state) => state.pointages);
   const { items: users } = useSelector((state) => state.users);
+  const { items: absenceRequests } = useSelector((state) => state.absenceRequests);
   const [selectedPointages, setSelectedPointages] = useState([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,11 +28,37 @@ const PointagesListPage = () => {
   });
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [showImportDropdown, setShowImportDropdown] = useState(false);
+  const [editablePointages, setEditablePointages] = useState({});
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     dispatch(fetchPointages());
     dispatch(fetchUsers());
+    dispatch(fetchAbsenceRequests());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (users.length > 0) {
+      const initialPointages = {};
+      users.forEach(user => {
+        const existingPointage = pointages.find(p => 
+          p.user_id === user.id && 
+          new Date(p.date).toISOString().split('T')[0] === selectedDate
+        );
+        
+        initialPointages[user.id] = {
+          id: existingPointage?.id || null,
+          user_id: user.id,
+          date: selectedDate,
+          heureEntree: existingPointage?.heureEntree || '',
+          heureSortie: existingPointage?.heureSortie || '',
+          statutJour: existingPointage?.statutJour || 'present',
+          overtimeHours: existingPointage?.overtimeHours || 0
+        };
+      });
+      setEditablePointages(initialPointages);
+    }
+  }, [users, pointages, selectedDate]);
 
   // Filter pointages based on filters
   const filteredPointages = pointages.filter(pointage => {
@@ -288,6 +316,184 @@ const PointagesListPage = () => {
     }
   };
 
+  const handleFieldChange = (userId, field, value) => {
+    setEditablePointages(prev => ({
+      ...prev,
+      [userId]: {
+        ...prev[userId],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSavePointage = async (userId) => {
+    const pointage = editablePointages[userId];
+    try {
+      const pointageData = {
+        user_id: userId,
+        date: selectedDate,
+        heureEntree: pointage.statutJour === 'absent' ? null : pointage.heureEntree,
+        heureSortie: pointage.statutJour === 'absent' ? null : pointage.heureSortie,
+        statutJour: pointage.statutJour,
+        overtimeHours: pointage.statutJour === 'absent' ? 0 : (pointage.overtimeHours || 0)
+      };
+
+      const existingPointage = pointages.find(p => 
+        p.user_id === userId && 
+        new Date(p.date).toISOString().split('T')[0] === selectedDate
+      );
+
+      if (existingPointage) {
+        const updateData = [{
+          id: existingPointage.id,
+          ...pointageData
+        }];
+        await dispatch(updatePointage(updateData[0])).unwrap();
+      } else {
+        await dispatch(createPointage(pointageData)).unwrap();
+      }
+
+      await dispatch(fetchPointages()).unwrap();
+
+      Swal.fire(
+        'Succès!',
+        'Le pointage a été enregistré avec succès.',
+        'success'
+      );
+    } catch (error) {
+      console.error('Error saving pointage:', error);
+      Swal.fire(
+        'Erreur!',
+        'Une erreur est survenue lors de l\'enregistrement du pointage.',
+        'error'
+      );
+    }
+  };
+
+  const handleSaveAll = async () => {
+    try {
+      const updates = Object.values(editablePointages)
+        .filter(pointage => {
+          
+          return pointage.statutJour !== 'present' || 
+                 pointage.heureEntree || 
+                 pointage.heureSortie || 
+                 pointage.overtimeHours;
+        })
+        .map(pointage => {
+          const pointageData = {
+            id: pointage.id,
+            user_id: pointage.user_id,
+            date: selectedDate,
+            heureEntree: pointage.statutJour === 'absent' ? null : pointage.heureEntree,
+            heureSortie: pointage.statutJour === 'absent' ? null : pointage.heureSortie,
+            statutJour: pointage.statutJour,
+            overtimeHours: pointage.statutJour === 'absent' ? 0 : pointage.overtimeHours
+          };
+          return pointageData;
+        });
+
+      if (updates.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Information',
+          text: 'Aucun pointage à sauvegarder',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      const existingPointages = updates.filter(pointage => pointage.id);
+      
+      if (existingPointages.length > 0) {
+        await dispatch(updatePointage(existingPointages)).unwrap();
+      }
+
+      const newPointages = updates.filter(pointage => !pointage.id);
+      if (newPointages.length > 0) {
+        await Promise.all(newPointages.map(pointage => 
+          dispatch(createPointage(pointage)).unwrap()
+        ));
+      }
+
+      await dispatch(fetchPointages()).unwrap();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Succès',
+        text: 'Les pointages ont été sauvegardés avec succès',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error('Error saving all pointages:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: error.message || 'Une erreur est survenue lors de la sauvegarde des pointages',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+  };
+
+  // Update this function to check absence requests
+  const isUserOnLeave = (userId) => {
+    const selectedDateObj = new Date(selectedDate);
+    console.log('Checking absence requests for user:', userId, 'on date:', selectedDate);
+    console.log('All absence requests:', absenceRequests);
+    
+    const isOnLeave = absenceRequests.some(request => {
+      const startDate = new Date(request.dateDebut);
+      const endDate = new Date(request.dateFin);
+      console.log('Checking request:', {
+        request,
+        startDate,
+        endDate,
+        selectedDateObj,
+        isInRange: selectedDateObj >= startDate && selectedDateObj <= endDate,
+        isTypeValid: request.type === 'Congé' || request.type === 'maladie',
+        isStatusValid: request.statut === 'validé'
+      });
+      
+      return request.user_id === userId && 
+             request.statut === 'validé' && // Only consider validated requests
+             (request.type === 'Congé' || request.type === 'maladie') && // Check for leave or sickness
+             selectedDateObj >= startDate && 
+             selectedDateObj <= endDate;
+    });
+    
+    console.log('Is user on leave:', isOnLeave);
+    return isOnLeave;
+  };
+
+  // Helper function to get the leave type and status
+  const getLeaveInfo = (userId) => {
+    const selectedDateObj = new Date(selectedDate);
+    console.log('Getting leave info for user:', userId, 'on date:', selectedDate);
+    
+    const request = absenceRequests.find(request => {
+      const startDate = new Date(request.dateDebut);
+      const endDate = new Date(request.dateFin);
+      return request.user_id === userId && 
+             request.statut === 'validé' &&
+             (request.type === 'Congé' || request.type === 'maladie') &&
+             selectedDateObj >= startDate && 
+             selectedDateObj <= endDate;
+    });
+
+    console.log('Found leave request:', request);
+    if (request) {
+      return {
+        type: request.type,
+        startDate: request.dateDebut,
+        endDate: request.dateFin
+      };
+    }
+    return null;
+  };
+
   if (loading === 'loading') {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
@@ -319,225 +525,123 @@ const PointagesListPage = () => {
   }
 
   return (
-    <div className="card basic-data-table">
-      {/* Header */}
-      <div className="card-header d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center">
+    <div className="card">
+      <div className="card-header d-flex justify-content-between align-items-center">
         <h5 className="card-title mb-0">Pointages</h5>
-
-        <div className="d-flex flex-wrap gap-2">
-          <Link to="/pointages/add" className="btn btn-primary d-flex align-items-center">
-            <Icon icon="mdi:plus" />
-            <span className="d-none d-md-inline ms-1">Ajouter</span>
-          </Link>
-
-          <button 
-            className="btn btn-danger d-flex align-items-center"
-            onClick={handleBulkDelete}
-            disabled={selectedPointages.length === 0}
-          >
-            <Icon icon="mdi:trash" />
-            <span className="d-none d-md-inline ms-1">Supprimer</span>
-          </button>
-
-          {/* Export Dropdown */}
-          <div className="dropdown">
-            <button 
-              className="btn btn-success d-flex align-items-center dropdown-toggle"
-              onClick={() => setShowExportDropdown(!showExportDropdown)}
-            >
-              <Icon icon="mdi:download" />
-              <span className="d-none d-md-inline ms-1">Export</span>
-            </button>
-            <div className={`dropdown-menu ${showExportDropdown ? 'show' : ''}`} style={{ position: 'absolute', inset: '0px auto auto 0px', margin: '0px', transform: 'translate(0px, 40px)' }}>
-              <button 
-                className="dropdown-item d-flex align-items-center"
-                onClick={() => {
-                  exportToExcel();
-                  setShowExportDropdown(false);
-                }}
-              >
-                <Icon icon="mdi:file-excel" className="me-2" />
-                Export Excel
-              </button>
-              <button 
-                className="dropdown-item d-flex align-items-center"
-                onClick={() => {
-                  exportToPDF();
-                  setShowExportDropdown(false);
-                }}
-              >
-                <Icon icon="mdi:file-pdf" className="me-2" />
-                Export PDF
-              </button>
-            </div>
-          </div>
-
-          {/* Import Dropdown */}
-          <div className="dropdown">
-            <button 
-              className="btn btn-info d-flex align-items-center dropdown-toggle"
-              onClick={() => setShowImportDropdown(!showImportDropdown)}
-            >
-              <Icon icon="mdi:upload" />
-              <span className="d-none d-md-inline ms-1">Import</span>
-            </button>
-            <div className={`dropdown-menu ${showImportDropdown ? 'show' : ''}`} style={{ position: 'absolute', inset: '0px auto auto 0px', margin: '0px', transform: 'translate(0px, 40px)' }}>
-              <div className="dropdown-item">
-                <label className="d-flex align-items-center" style={{ cursor: 'pointer' }}>
-                  <Icon icon="mdi:file-excel" className="me-2" />
-                  Import Excel
-                  <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={(e) => {
-                      handleFileImport(e);
-                      setShowImportDropdown(false);
-                    }}
-                    className="d-none"
-                  />
-                </label>
-              </div>
-              <div className="dropdown-item">
-                <label className="d-flex align-items-center" style={{ cursor: 'pointer' }}>
-                  <Icon icon="mdi:file-pdf" className="me-2" />
-                  Import PDF
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => {
-                      // Handle PDF import if needed
-                      setShowImportDropdown(false);
-                    }}
-                    className="d-none"
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <button
-            className="btn btn-outline-secondary d-inline d-md-none"
-            onClick={() => setFiltersOpen(!filtersOpen)}
-          >
-            <Icon icon="mdi:tune" />
+        <div className="d-flex align-items-center gap-3">
+          <input
+            type="date"
+            className="form-control"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+          <button className="btn btn-primary" onClick={handleSaveAll}>
+            <Icon icon="mdi:content-save-all" className="me-1" />
+            Sauvegarder tout
           </button>
         </div>
       </div>
-
       <div className="card-body">
-        {/* Filters */}
-        <div className={`filters-container mb-4 ${filtersOpen ? 'd-block' : 'd-none'} d-md-block`}>
-          <div className="row g-3">
-            <div className="col-12 col-md-4">
-              <label className="form-label">Date</label>
-              <input
-                type="date"
-                className="form-control"
-                value={filters.date}
-                onChange={e => setFilters(prev => ({ ...prev, date: e.target.value }))}
-              />
-            </div>
-
-            <div className="col-12 col-md-4">
-              <label className="form-label">Employé</label>
-              <select
-                className="form-select"
-                value={filters.user}
-                onChange={e => setFilters(prev => ({ ...prev, user: e.target.value }))}
-              >
-                <option value="">Tous les employés</option>
-                {users.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} {user.prenom}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-12 col-md-4">
-              <label className="form-label">Statut</label>
-              <select
-                className="form-select"
-                value={filters.status}
-                onChange={e => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              >
-                <option value="">Tous les statuts</option>
-                <option value="present">Présent</option>
-                <option value="absent">Absent</option>
-                <option value="retard">Retard</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
         <div className="table-responsive">
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    checked={selectedPointages.length === pointages.length}
-                    onChange={() => {
-                      if (selectedPointages.length === pointages.length) {
-                        setSelectedPointages([]);
-                      } else {
-                        setSelectedPointages(pointages.map(p => p.id));
-                      }
-                    }}
-                  />
-                </th>
                 <th>Employé</th>
-                <th>Date</th>
                 <th>Heure d'entrée</th>
                 <th>Heure de sortie</th>
                 <th>Statut</th>
                 <th>Heures supplémentaires</th>
-                <th className="text-end">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((pointage) => {
-                const user = users.find(u => u.id === pointage.user_id);
+              {users.map((user) => {
+                const pointage = editablePointages[user.id] || {};
+                const isOnLeave = isUserOnLeave(user.id);
+                const leaveInfo = getLeaveInfo(user.id);
+                
+                console.log('Rendering user:', {
+                  userId: user.id,
+                  userName: `${user.name} ${user.prenom}`,
+                  isOnLeave,
+                  leaveInfo
+                });
+                
                 return (
-                  <tr key={pointage.id}>
+                  <tr key={user.id}>
+                    <td>
+                      {user.name} {user.prenom}
+                      {isOnLeave && leaveInfo && (
+                        <span className={`badge ms-2 ${
+                          leaveInfo.type === 'Congé' ? 'bg-info' : 'bg-warning'
+                        }`}>
+                          {leaveInfo.type === 'Congé' ? 'En congé' : 'Malade'}
+                          <small className="ms-1">
+                            ({new Date(leaveInfo.startDate).toLocaleDateString()} - {new Date(leaveInfo.endDate).toLocaleDateString()})
+                          </small>
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={selectedPointages.includes(pointage.id)}
-                        onChange={() => togglePointageSelection(pointage.id)}
+                        type="time"
+                        className="form-control"
+                        value={pointage.heureEntree || ''}
+                        onChange={(e) => handleFieldChange(user.id, 'heureEntree', e.target.value)}
+                        disabled={pointage.statutJour === 'absent' || isOnLeave}
                       />
                     </td>
-                    <td>{user ? `${user.name} ${user.prenom}` : 'Utilisateur inconnu'}</td>
-                    <td>{new Date(pointage.date).toLocaleDateString()}</td>
-                    <td>{pointage.heureEntree || '-'}</td>
-                    <td>{pointage.heureSortie || '-'}</td>
                     <td>
-                      <span className={`badge bg-${getStatusBadgeColor(pointage.statutJour)}`}>
-                        {getStatusLabel(pointage.statutJour)}
-                      </span>
+                      <input
+                        type="time"
+                        className="form-control"
+                        value={pointage.heureSortie || ''}
+                        onChange={(e) => handleFieldChange(user.id, 'heureSortie', e.target.value)}
+                        disabled={pointage.statutJour === 'absent' || isOnLeave}
+                      />
                     </td>
-                    <td>{pointage.overtimeHours || '0'}</td>
-                    <td className="text-end">
-                      <div className="d-flex justify-content-end gap-2">
-                        <button
-                          className="btn btn-sm btn-primary me-2"
-                          onClick={() => handleEdit(pointage.id)}
-                          title="Modifier"
-                        >
-                          <Icon icon="mdi:pencil" />
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(pointage.id)}
-                          title="Supprimer"
-                        >
-                          <Icon icon="mdi:delete" />
-                        </button>
-                      </div>
+                    <td>
+                      <select
+                        className={`form-select ${
+                          pointage.statutJour === 'present' ? 'text-success' :
+                          pointage.statutJour === 'absent' ? 'text-danger' :
+                          pointage.statutJour === 'retard' ? 'text-warning' : ''
+                        }`}
+                        value={pointage.statutJour || 'present'}
+                        onChange={(e) => {
+                          const newStatus = e.target.value;
+                          handleFieldChange(user.id, 'statutJour', newStatus);
+                          if (newStatus === 'absent') {
+                            handleFieldChange(user.id, 'heureEntree', '');
+                            handleFieldChange(user.id, 'heureSortie', '');
+                          }
+                        }}
+                        disabled={isOnLeave}
+                      >
+                        <option value="present" className="text-success">Présent</option>
+                        <option value="absent" className="text-danger">Absent</option>
+                        <option value="retard" className="text-warning">Retard</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={pointage.overtimeHours || 0}
+                        onChange={(e) => handleFieldChange(user.id, 'overtimeHours', parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.5"
+                        disabled={pointage.statutJour === 'absent' || isOnLeave}
+                      />
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleSavePointage(user.id)}
+                        disabled={isOnLeave}
+                      >
+                        <Icon icon="mdi:content-save" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -545,67 +649,11 @@ const PointagesListPage = () => {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        <div className="d-flex justify-content-between align-items-center mt-4">
-          <div className="d-flex align-items-center">
-            <span className="me-2">Afficher</span>
-            <select
-              className="form-select form-select-sm"
-              style={{ width: 'auto' }}
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-            >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="all">Tous</option>
-            </select>
-            <span className="ms-2">entrées</span>
-          </div>
-
-          <nav>
-            <ul className="pagination mb-0">
-              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Précédent
-                </button>
-              </li>
-              {getPageNumbers().map((number) => (
-                <li
-                  key={number}
-                  className={`page-item ${currentPage === number ? 'active' : ''}`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() => paginate(number)}
-                  >
-                    {number}
-                  </button>
-                </li>
-              ))}
-              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Suivant
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
       </div>
     </div>
   );
 };
 
-// Helper functions for status display
 const getStatusLabel = (status) => {
   switch (status) {
     case 'present':

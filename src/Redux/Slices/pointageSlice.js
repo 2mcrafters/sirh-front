@@ -18,8 +18,25 @@ export const fetchPointages = createAsyncThunk(
 // Helper function to clean time fields
 const cleanTimeFields = (data) => {
   const cleanedData = { ...data };
-  if (cleanedData.heureEntree === '') cleanedData.heureEntree = null;
-  if (cleanedData.heureSortie === '') cleanedData.heureSortie = null;
+  
+  // Format heureEntree
+  if (cleanedData.heureEntree === '' || cleanedData.heureEntree === null) {
+    cleanedData.heureEntree = null;
+  } else if (typeof cleanedData.heureEntree === 'string') {
+    // Ensure the time is in HH:MM format
+    const [hours, minutes] = cleanedData.heureEntree.split(':');
+    cleanedData.heureEntree = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  }
+  
+  // Format heureSortie
+  if (cleanedData.heureSortie === '' || cleanedData.heureSortie === null) {
+    cleanedData.heureSortie = null;
+  } else if (typeof cleanedData.heureSortie === 'string') {
+    // Ensure the time is in HH:MM format
+    const [hours, minutes] = cleanedData.heureSortie.split(':');
+    cleanedData.heureSortie = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  }
+  
   return cleanedData;
 };
 
@@ -38,13 +55,22 @@ export const createPointage = createAsyncThunk(
 
 export const updatePointage = createAsyncThunk(
   'pointages/updatePointage',
-  async ({ id, ...pointageData }, { rejectWithValue }) => {
+  async (updates, { rejectWithValue }) => {
     try {
-      const cleanedData = cleanTimeFields(pointageData);
-      const response = await axios.put(API_ENDPOINTS.POINTAGES.BASE, [{ id, ...cleanedData }]);
+      // Ensure updates is an array and clean each update
+      const cleanedUpdates = Array.isArray(updates) ? updates.map(update => cleanTimeFields(update)) : [cleanTimeFields(updates)];
+      
+      // Ensure each update has an id
+      const validUpdates = cleanedUpdates.filter(update => update.id);
+      
+      if (validUpdates.length === 0) {
+        throw new Error('No valid updates to process');
+      }
+
+      const response = await axios.put(API_ENDPOINTS.POINTAGES.BASE, validUpdates);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );

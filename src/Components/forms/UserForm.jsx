@@ -126,6 +126,12 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
     }
   };
 
+  // Add a function to normalize the role value
+  const normalizeRole = (role) => {
+    if (!role) return '';
+    return role.toUpperCase();
+  };
+
   return (
     <Formik
       initialValues={{
@@ -139,7 +145,7 @@ const UserForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
         tel: '',
         email: '',
         password: '',
-        role: isEdit ? initialValues.role : 'Employe',
+        role: isEdit ? normalizeRole(initialValues.role) : 'Employe',
         typeContrat: 'Permanent',
         date_naissance: '',
         statut: 'Actif',
