@@ -1,23 +1,32 @@
-import React, { useEffect } from 'react';
-import { Provider } from 'react-redux';
-import store from './Redux/store';
-import AppRoutes from './routes';
-import { getCurrentUser } from './Redux/Slices/authSlice';
+import MasterLayout from './masterLayout/MasterLayout'
+import { Route, Routes } from 'react-router-dom'
+import Login from './Pages/Login'
+import TableDataLayer from './Components/TableDataLayer'
+import Dashboard from './Pages/Dashboard'
+import ViewProfileLayer from './Pages/ViewProfileLayer'
+import { AuthProvider } from './context/AuthContext'
+import PresenceDashboard from './Components/Statistique/PresenceDashboard'
+import "./degrade.css"
 
-const App = () => {
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem('token');
-    if (token) {
-      store.dispatch(getCurrentUser());
-    }
-  }, []);
+function App() {
+  
 
   return (
-    <Provider store={store}>
-      <AppRoutes />
-    </Provider>
-  );
-};
+    <AuthProvider>
+      <Routes>
+        {/* Route publique */}
+        <Route path="/login" element={<Login />} />
 
-export default App;
+        {/* Routes protégées avec MasterLayout */}
+        <Route element={<MasterLayout />}>
+          <Route path="/" element={<TableDataLayer />} />
+          <Route path="/view-profile" element={<ViewProfileLayer />} />
+          <Route path='/dashboard' element={<Dashboard/>} />
+          <Route path='/statistiques' element={<PresenceDashboard/>} />
+          </Route>
+      </Routes>
+    </AuthProvider>
+  )
+}
+
+export default App
