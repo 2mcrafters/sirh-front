@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchPresenceStats } from '../../Redux/Slices/presenceStatsSlice';
 import PresenceStatsCard from './PresenceStatsCard';
 import PresenceChart from './PresenceChart';
+import PresenceBarChart from './PresenceBarChart';
 
 const PresenceDashboard = () => {
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ const PresenceDashboard = () => {
             onChange={(e) => setPeriode(e.target.value)}
           >
             <option value="jour">Par Jour</option>
-            <option value="semaine">Par Semaine</option>
+            <option value="semaine">Entre 2 Jours</option>
             <option value="mois">Par Mois</option>
           </select>
 
@@ -123,9 +124,17 @@ const PresenceDashboard = () => {
               />
             </div>
 
-            <div className="mt-6">
-              <PresenceChart data={chartData} />
-            </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div className="bg-white p-4 rounded-lg shadow">
+    <h3 className="text-lg font-semibold mb-4">Répartition en pourcentage</h3>
+    <PresenceChart data={chartData} />
+  </div>
+  <div className="bg-white p-4 rounded-lg shadow">
+    <h3 className="text-lg font-semibold mb-4">Nombre d'employés par statut</h3>
+    <PresenceBarChart data={chartData} />
+  </div>
+</div>
+
           </>
         ) : (
           <p className="text-center text-gray-500">Aucune donnée disponible</p>
