@@ -8,7 +8,7 @@ const BulkAddDepartmentPage = () => {
   const handleSuccess = () => {
     // Redirect to departments list after a short delay
     setTimeout(() => {
-      navigate('/departments');
+      navigate('/liste-departements');
     }, 2000);
   };
 

@@ -179,7 +179,7 @@ const DepartmentsListPage = () => {
         <h5 className="card-title mb-0">Départements</h5>
 
         <div className="d-flex flex-wrap gap-2">
-          <Link to="/departments/add" className="btn btn-primary d-flex align-items-center">
+          <Link to="/creer-departement" className="btn btn-primary d-flex align-items-center">
             <Icon icon="mdi:plus" />
             <span className="d-none d-md-inline ms-1">Ajouter</span>
           </Link>

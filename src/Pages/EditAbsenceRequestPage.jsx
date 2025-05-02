@@ -9,7 +9,8 @@ const EditAbsenceRequestPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { items: absenceRequests, status: loading } = useSelector((state) => state.absenceRequests);
+  const { items = { absences: [] }, status: loading } = useSelector((state) => state.absenceRequests);
+  const absenceRequests = items.absences || [];
 
   useEffect(() => {
     dispatch(fetchAbsenceRequests());

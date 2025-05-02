@@ -1,13 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/departements';
+// const API_URL = 'http://localhost:8001/api';
+import api from '../../config/axios';  
+
 
 export const fetchDepartments = createAsyncThunk(
   'departments/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await api.get("/departements");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -23,7 +25,7 @@ export const createDepartment = createAsyncThunk(
         nom: departmentData.nom,
         description: departmentData.description || null
       };
-      const response = await axios.post(API_URL, formattedData);
+      const response = await api.post("/departements", formattedData);
       return response.data;
     } catch (error) {
       console.error('Error creating department:', error.response?.data);
@@ -43,7 +45,7 @@ export const updateDepartment = createAsyncThunk(
         description: departmentData.description || null
       }];
 
-      const response = await axios.put(API_URL, formattedData);
+      const response = await api.put("/departements", formattedData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -55,7 +57,7 @@ export const deleteDepartments = createAsyncThunk(
   'departments/delete',
   async (ids, { rejectWithValue }) => {
     try {
-      await axios.delete(API_URL, { data: { ids } });
+      await api.delete("/departements", { data: { ids } });
       return ids;
     } catch (error) {
       return rejectWithValue(error.response.data);

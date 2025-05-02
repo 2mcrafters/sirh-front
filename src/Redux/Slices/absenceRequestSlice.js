@@ -1,13 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../../config/api';
+import api from '../../config/axios';  
 
 // Async thunks
 export const fetchAbsenceRequests = createAsyncThunk(
   'absenceRequests/fetchAbsenceRequests',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.ABSENCE_REQUESTS.BASE, {
+      const response = await api.get("/absences", {
         params: {
           include: 'user'
         }
@@ -21,9 +20,13 @@ export const fetchAbsenceRequests = createAsyncThunk(
 
 export const createAbsenceRequest = createAsyncThunk(
   'absenceRequests/createAbsenceRequest',
-  async (requestData, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.ABSENCE_REQUESTS.BASE, requestData);
+      const response = await api.post("/absences", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -33,20 +36,13 @@ export const createAbsenceRequest = createAsyncThunk(
 
 export const updateAbsenceRequest = createAsyncThunk(
   'absenceRequests/update',
-  async (requestData, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      // Format the data as expected by the backend
-      const formattedData = [{
-        id: requestData.id,
-        user_id: requestData.user_id,
-        type: requestData.type,
-        dateDebut: requestData.dateDebut,
-        dateFin: requestData.dateFin,
-        motif: requestData.motif || null,
-        statut: requestData.statut || 'en_attente'
-      }];
-
-      const response = await axios.put(API_ENDPOINTS.ABSENCE_REQUESTS.BASE, formattedData);
+      const response = await api.put("/absences", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -58,7 +54,7 @@ export const deleteAbsenceRequests = createAsyncThunk(
   'absenceRequests/deleteAbsenceRequests',
   async (ids, { rejectWithValue }) => {
     try {
-      await axios.delete(API_ENDPOINTS.ABSENCE_REQUESTS.BASE, { data: { ids } });
+      await api.delete("/absences", { data: { ids } });
       return ids;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -70,7 +66,8 @@ export const updateAbsenceRequestStatus = createAsyncThunk(
   'absenceRequests/updateStatus',
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(API_ENDPOINTS.ABSENCE_REQUESTS.STATUS(id), { status });
+      const response = await api.put("absences", { status });
+      // const response = await api.put(API_ENDPOINTS.ABSENCE_REQUESTS.STATUS(id), { status });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -81,7 +78,7 @@ export const updateAbsenceRequestStatus = createAsyncThunk(
 const absenceRequestSlice = createSlice({
   name: 'absenceRequests',
   initialState: {
-    items: [],
+    items: { absences: [] },
     status: 'idle',
     error: null
   },
@@ -106,7 +103,10 @@ const absenceRequestSlice = createSlice({
       })
       .addCase(createAbsenceRequest.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items.push(action.payload);
+        if (!state.items.absences) {
+          state.items.absences = [];
+        }
+        state.items.absences.push(action.payload);
       })
       .addCase(createAbsenceRequest.rejected, (state, action) => {
         state.status = 'failed';
@@ -118,9 +118,12 @@ const absenceRequestSlice = createSlice({
       })
       .addCase(updateAbsenceRequest.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.items.findIndex(r => r.id === action.payload.id);
+        if (!state.items.absences) {
+          state.items.absences = [];
+        }
+        const index = state.items.absences.findIndex(r => r.id === action.payload.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items.absences[index] = action.payload;
         }
       })
       .addCase(updateAbsenceRequest.rejected, (state, action) => {
@@ -133,7 +136,7 @@ const absenceRequestSlice = createSlice({
       })
       .addCase(deleteAbsenceRequests.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items = state.items.filter(r => !action.payload.includes(r.id));
+        state.items = { absences: state.items.absences.filter(r => !action.payload.includes(r.id)) };
       })
       .addCase(deleteAbsenceRequests.rejected, (state, action) => {
         state.status = 'failed';
@@ -145,9 +148,12 @@ const absenceRequestSlice = createSlice({
       })
       .addCase(updateAbsenceRequestStatus.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.items.findIndex(r => r.id === action.payload.id);
+        if (!state.items.absences) {
+          state.items.absences = [];
+        }
+        const index = state.items.absences.findIndex(r => r.id === action.payload.id);
         if (index !== -1) {
-          state.items[index] = action.payload;
+          state.items.absences[index] = action.payload;
         }
       })
       .addCase(updateAbsenceRequestStatus.rejected, (state, action) => {

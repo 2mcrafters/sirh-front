@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { API_ENDPOINTS } from '../../config/api';
+import api from '../../config/axios';  
 
 // Async thunks
 export const fetchUsers = createAsyncThunk(
   'users/fetchUsers',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.USERS.BASE, {
+      const response = await api.get("employes", {
         params: {
           include: 'departement'
         }
@@ -54,7 +54,7 @@ export const createUser = createAsyncThunk(
           });
           formData.append('picture', userData.picture);
           
-          const response = await axios.post(API_ENDPOINTS.USERS.BASE, formData, {
+          const response = await api.post("employes", formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -63,7 +63,7 @@ export const createUser = createAsyncThunk(
         }
       }
 
-      const response = await axios.post(API_ENDPOINTS.USERS.BASE, formattedData);
+      const response = await api.post("employes", formattedData);
       return response.data;
     } catch (error) {
       console.error('Error creating user:', error.response?.data);
@@ -107,7 +107,7 @@ export const updateUser = createAsyncThunk(
           });
           formData.append('picture', userData.picture);
           
-          const response = await axios.put(API_ENDPOINTS.USERS.BASE, [formData], {
+          const response = await api.put("employes", [formData], {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -116,7 +116,7 @@ export const updateUser = createAsyncThunk(
         }
       }
 
-      const response = await axios.put(API_ENDPOINTS.USERS.BASE, formattedData);
+      const response = await api.put("employes", formattedData);
       return response.data;
     } catch (error) {
       console.error('Error updating user:', error.response?.data);
@@ -129,8 +129,20 @@ export const deleteUsers = createAsyncThunk(
   'users/deleteUsers',
   async (ids, { rejectWithValue }) => {
     try {
-      await axios.delete(API_ENDPOINTS.USERS.BASE, { data: { ids } });
+      await api.delete("employes", { data: { ids } });
       return ids;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const fetchAuthenticatedUser = createAsyncThunk(
+  'users/fetchAuthenticatedUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/auth/user");
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -141,6 +153,7 @@ const userSlice = createSlice({
   name: 'users',
   initialState: {
     items: [],
+    authenticatedUser: null,
     status: 'idle',
     error: null
   },
@@ -195,6 +208,18 @@ const userSlice = createSlice({
         state.items = state.items.filter(u => !action.payload.includes(u.id));
       })
       .addCase(deleteUsers.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      // Fetch authenticated user
+      .addCase(fetchAuthenticatedUser.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAuthenticatedUser.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.authenticatedUser = action.payload;
+      })
+      .addCase(fetchAuthenticatedUser.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       });

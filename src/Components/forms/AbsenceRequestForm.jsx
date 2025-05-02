@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createAbsenceRequest, updateAbsenceRequest } from '../../Redux/Slices/absenceRequestSlice';
-import { fetchUsers } from '../../Redux/Slices/userSlice';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
@@ -9,14 +8,15 @@ import Swal from 'sweetalert2';
 const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
   const dispatch = useDispatch();
   const { status } = useSelector(state => state.absenceRequests);
-  const { items: users, status: usersStatus } = useSelector(state => state.users);
+  const { user, isLoading: authLoading } = useSelector(state => state.auth);
 
   useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    if (!isEdit && !user) {
+      Swal.fire('Erreur', 'Vous devez être connecté pour créer une demande d\'absence', 'error');
+    }
+  }, [user, isEdit]);
 
   const validationSchema = Yup.object({
-    user_id: Yup.string().required('L\'employé est requis'),
     type: Yup.string()
       .required('Le type d\'absence est requis')
       .oneOf(['Congé', 'maladie', 'autre'], 'Type d\'absence invalide'),
@@ -31,56 +31,69 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
         if (!value || typeof value === 'string') return true;
         return value.size <= 2048 * 1024;
       })
-      .test('fileType', 'Format de fichier non supporté', value => {
+      .test('fileType', 'Format de fichier non supporté (jpg, jpeg, png, pdf uniquement)', value => {
         if (!value || typeof value === 'string') return true;
         return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type);
-      }),
-
+      })
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      if (isEdit) {
-        // For update, create an object with all the values
-        const updateData = {
-          id: initialValues.id,
-          user_id: values.user_id,
-          type: values.type,
-          dateDebut: values.dateDebut,
-          dateFin: values.dateFin,
-          motif: values.motif || null,
-          statut: values.statut || initialValues.statut
-        };
+      const formData = new FormData();
 
-        await dispatch(updateAbsenceRequest(updateData)).unwrap();
-      } else {
-        // For create, use FormData
-        const formData = new FormData();
-        Object.keys(values).forEach(key => {
-          if (key !== 'justification') {
-            formData.append(key, values[key] || '');
-          }
-        });
+      if (isEdit) {
+        // For update
+        formData.append('id', initialValues.id);
+        formData.append('user_id', values.user_id);
+        formData.append('type', values.type);
+        formData.append('dateDebut', values.dateDebut);
+        formData.append('dateFin', values.dateFin);
+        formData.append('motif', values.motif || '');
+        formData.append('statut', values.statut || initialValues.statut || 'en_attente');
         
-        if (values.justification) {
+        if (values.justification instanceof File) {
+          formData.append('justification', values.justification);
+        } else if (values.justification) {
+          formData.append('justification', '');
+        }
+      } else {
+        // For create
+        if (!user) {
+          throw new Error('Utilisateur non authentifié');
+        }
+        formData.append('user_id', user.id);
+        formData.append('type', values.type);
+        formData.append('dateDebut', values.dateDebut);
+        formData.append('dateFin', values.dateFin);
+        formData.append('motif', values.motif || '');
+        formData.append('statut', 'en_attente');
+        
+        if (values.justification instanceof File) {
           formData.append('justification', values.justification);
         }
+      }
 
-        // Always set status to 'en_attente' for new requests
-        formData.append('statut', 'en_attente');
+      const response = await dispatch(
+        isEdit ? updateAbsenceRequest(formData) : createAbsenceRequest(formData)
+      ).unwrap();
 
-        await dispatch(createAbsenceRequest(formData)).unwrap();
+      if (response && response.error) {
+        throw new Error(response.error);
       }
 
       resetForm();
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error submitting form:', error);
-      Swal.fire(
-        'Erreur!',
-        'Une erreur est survenue lors de la mise à jour de la demande d\'absence.',
-        'error'
-      );
+      let errorMessage = 'Une erreur est survenue lors de la mise à jour de la demande d\'absence.';
+      
+      if (error.error && error.error.justification) {
+        errorMessage = error.error.justification.join(' ');
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Swal.fire('Erreur!', errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -91,7 +104,6 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
       <div className="card-body">
         <Formik
           initialValues={{
-            user_id: '',
             type: 'Congé',
             dateDebut: '',
             dateFin: '',
@@ -102,33 +114,24 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting, setFieldValue }) => (
+          {({ isSubmitting, setFieldValue, values }) => (
             <Form>
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label htmlFor="user_id" className="form-label">Employé</label>
-                    <Field
-                      as="select"
-                      name="user_id"
-                      id="user_id"
-                      className="form-select"
-                      disabled={usersStatus === 'loading'}
-                    >
-                      <option value="">Sélectionner un employé</option>
-                      {usersStatus === 'loading' ? (
-                        <option value="" disabled>Chargement des employés...</option>
-                      ) : (
-                        users.map(user => (
-                          <option key={user.id} value={user.id}>
-                            {user.name} {user.prenom}
-                          </option>
-                        ))
-                      )}
-                    </Field>
-                    <ErrorMessage name="user_id" component="div" className="text-danger" />
+              {!isEdit && user && (
+                <div className="row">
+                  <div className="col-12">
+                    <div className="mb-3">
+                      <label className="form-label">Employé</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={`${user.name} ${user.prenom}`}
+                        disabled
+                      />
+                    </div>
                   </div>
                 </div>
+              )}
+              <div className="row">
                 <div className="col-md-6">
                   <div className="mb-3">
                     <label htmlFor="type" className="form-label">Type d'absence</label>
@@ -199,10 +202,24 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
                       name="justification"
                       id="justification"
                       className="form-control"
+                      accept=".jpg,.jpeg,.png,.pdf"
                       onChange={(event) => {
-                        setFieldValue("justification", event.currentTarget.files[0]);
+                        const file = event.currentTarget.files[0];
+                        if (file) {
+                          console.log('Selected file:', file);
+                          setFieldValue("justification", file);
+                        } else {
+                          setFieldValue("justification", null);
+                        }
                       }}
                     />
+                    {values.justification && (
+                      <div className="mt-2">
+                        <small className="text-muted">
+                          Fichier sélectionné: {values.justification.name || values.justification}
+                        </small>
+                      </div>
+                    )}
                     <ErrorMessage name="justification" component="div" className="text-danger" />
                   </div>
                 </div>
@@ -229,7 +246,7 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={isSubmitting || status === 'loading' || usersStatus === 'loading'}
+                  disabled={isSubmitting || status === 'loading' || (!isEdit && authLoading)}
                 >
                   {isSubmitting || status === 'loading' ? (
                     <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
@@ -245,4 +262,4 @@ const AbsenceRequestForm = ({ initialValues = {}, isEdit = false, onSuccess }) =
   );
 };
 
-export default AbsenceRequestForm; 
+export default AbsenceRequestForm;

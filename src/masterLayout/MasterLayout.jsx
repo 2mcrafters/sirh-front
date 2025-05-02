@@ -159,17 +159,17 @@ const MasterLayout = ({ children }) => {
     <li className="dropdown">
       <Link to="#">
         <Icon icon="mdi:account-group-outline" className="menu-icon" />
-        <span>Gestion des employés</span>
+        <span> Employés</span>
       </Link>
       <ul className="sidebar-submenu">
         <li>
-          <NavLink to="/ajouter-employe" className={(navData) => navData.isActive ? "active-page" : ""}>
+          <NavLink to="/users/add" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:account-plus-outline" className="circle-icon w-auto" />
             Ajouter les employés
           </NavLink>
         </li>
         <li>
-          <NavLink to="/liste-employes" className={(navData) => navData.isActive ? "active-page" : ""}>
+          <NavLink to="/users" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:format-list-bulleted" className="circle-icon w-auto" />
             Liste des employés
           </NavLink>
@@ -183,7 +183,7 @@ const MasterLayout = ({ children }) => {
     <li className="dropdown">
       <Link to="#" >
         <Icon icon="fluent:building-people-24-regular" className="menu-icon" />
-        <span>Gestion des départements</span>
+        <span>Départements</span>
       </Link>
       <ul className="sidebar-submenu">
         <li>
@@ -211,14 +211,14 @@ const MasterLayout = ({ children }) => {
     <ul className="sidebar-submenu">
       {(roles.includes("RH") || roles.includes("CHEF_DEP")) && (
         <li>
-          <NavLink to="/liste-demandes" className={(navData) => navData.isActive ? "active-page" : ""}>
+          <NavLink to="/absences" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:clipboard-list-outline" className="circle-icon w-auto" />
             Liste des demandes
           </NavLink>
         </li>
       )}
       <li>
-        <NavLink to="/ajouter-demande" className={(navData) => navData.isActive ? "active-page" : ""}>
+        <NavLink to="absences/add" className={(navData) => navData.isActive ? "active-page" : ""}>
           <Icon icon="mdi:calendar-plus-outline" className="circle-icon w-auto" />
           Ajouter une demande
         </NavLink>
