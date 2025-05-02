@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
 import api from '../../config/axios';  
 
 // Async thunks
@@ -118,7 +117,7 @@ export const updateUser = createAsyncThunk(
       }
 
       // If no picture or picture is a string, send regular JSON
-      const response = await axios.put(API_ENDPOINTS.USERS.BASE, formattedData);
+      const response = await api.put("employes", formattedData);
       return response.data;
     } catch (error) {
       console.error('Error updating user:', error.response?.data);

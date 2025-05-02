@@ -19,12 +19,7 @@ import EditPointagePage from './Pages/EditPointagePage'
 import "./degrade.css"
 import ListeDepartements from './Pages/DepartmentsListPage'
 import CreerDepartement from './Pages/BulkAddDepartmentPage'
-import EditDepartmentPage from './Pages/EditDepartmentPage'
-import AbsenceRequestsListPage from"./Pages/AbsenceRequestsListPage"
-import AddAbsenceRequestPage from"./Pages/AddAbsenceRequestPage"
-import EditAbsenceRequestPage from"./Pages/EditAbsenceRequestPage"
-import UsersListPage from './Pages/UsersListPage';
-import UserFormPage from './Pages/UserFormPage';
+
 function App() {
   return (
     <AuthProvider>

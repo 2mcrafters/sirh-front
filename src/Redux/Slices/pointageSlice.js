@@ -1,13 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../../config/api';
+import api from '../../config/axios';  
 
 // Async thunks
 export const fetchPointages = createAsyncThunk(
   'pointages/fetchPointages',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_ENDPOINTS.POINTAGES.BASE);
+      const response = await api.get("pointages");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -45,7 +44,7 @@ export const createPointage = createAsyncThunk(
   async (pointageData, { rejectWithValue }) => {
     try {
       const cleanedData = cleanTimeFields(pointageData);
-      const response = await axios.post(API_ENDPOINTS.POINTAGES.BASE, cleanedData);
+      const response = await api.post("pointages", cleanedData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -67,7 +66,7 @@ export const updatePointage = createAsyncThunk(
         throw new Error('No valid updates to process');
       }
 
-      const response = await axios.put(API_ENDPOINTS.POINTAGES.BASE, validUpdates);
+      const response = await api.put("pointages", validUpdates);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -79,7 +78,7 @@ export const deletePointages = createAsyncThunk(
   'pointages/deletePointages',
   async (ids, { rejectWithValue }) => {
     try {
-      await axios.delete(API_ENDPOINTS.POINTAGES.BASE, { data: { ids } });
+      await api.delete("pointages", { data: { ids } });
       return ids;
     } catch (error) {
       return rejectWithValue(error.response.data);
