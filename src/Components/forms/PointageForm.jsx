@@ -26,6 +26,7 @@ const validationSchema = Yup.object().shape({
     }),
   statutJour: Yup.string().required('Le statut est requis'),
   overtimeHours: Yup.number().min(0, 'Les heures supplémentaires doivent être positives').nullable(),
+  
 });
 
 const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
@@ -39,7 +40,6 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      // Format time values
       const formattedValues = {
         ...values,
         heureEntree: values.statutJour === 'absent' ? null : (values.heureEntree ? values.heureEntree.slice(0, 5) : null),
@@ -47,12 +47,12 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
       };
 
       if (isEdit) {
-        // Only include changed fields
         const changedValues = {
           id: initialValues.id,
           statutJour: formattedValues.statutJour,
           heureEntree: formattedValues.heureEntree,
-          heureSortie: formattedValues.heureSortie
+          heureSortie: formattedValues.heureSortie,
+          
         };
 
         await dispatch(updatePointage(changedValues)).unwrap();
@@ -85,6 +85,7 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
             heureSortie: initialValues.heureSortie || '',
             statutJour: initialValues.statutJour || 'present',
             overtimeHours: initialValues.overtimeHours || 0,
+            
           }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
@@ -178,6 +179,8 @@ const PointageForm = ({ initialValues = {}, isEdit = false, onSuccess }) => {
                   />
                   <ErrorMessage name="overtimeHours" component="div" className="invalid-feedback" />
                 </div>
+
+                
               </div>
 
               <div className="d-flex justify-content-end gap-2">

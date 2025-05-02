@@ -98,8 +98,9 @@ export const updateUser = createAsyncThunk(
       // Handle picture upload
       if (userData.picture) {
         if (typeof userData.picture === 'string') {
+          // If it's a string (existing picture URL), just pass it as is
           formattedData[0].picture = userData.picture;
-        } else {
+        } else if (userData.picture instanceof File) {
           // If it's a File object, create FormData
           const formData = new FormData();
           Object.keys(formattedData[0]).forEach(key => {
@@ -116,6 +117,7 @@ export const updateUser = createAsyncThunk(
         }
       }
 
+      // If no picture or picture is a string, send regular JSON
       const response = await axios.put(API_ENDPOINTS.USERS.BASE, formattedData);
       return response.data;
     } catch (error) {
