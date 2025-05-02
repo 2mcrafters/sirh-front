@@ -151,8 +151,8 @@ const MasterLayout = ({ children }) => {
     <NavLink to="/" className={(navData) => navData.isActive ? "active-page" : ""}>
       <Icon icon="solar:home-smile-angle-outline" className="menu-icon" />
       <span>Tableau de bord</span>
-    </NavLink>
-  </li>
+                </NavLink>
+              </li>
 
   {/* Gestion des employés - RH & CHEF_DEP */}
   {(roles.includes("RH") || roles.includes("CHEF_DEP")) && (
@@ -172,10 +172,10 @@ const MasterLayout = ({ children }) => {
           <NavLink to="/users" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:format-list-bulleted" className="circle-icon w-auto" />
             Liste des employés
-          </NavLink>
-        </li>
-      </ul>
-    </li>
+                    </NavLink>
+                  </li>
+                </ul>
+              </li>
   )}
 
   {/* Gestion des départements - RH uniquement */}
@@ -190,16 +190,16 @@ const MasterLayout = ({ children }) => {
           <NavLink to="/creer-departement" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:plus-box-outline" className="circle-icon w-auto" />
             Créer un département
-          </NavLink>
-        </li>
-        <li>
+                    </NavLink>
+                  </li>
+                  <li>
           <NavLink to="/liste-departements" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:format-list-bulleted-type" className="circle-icon w-auto" />
             Liste des départements
-          </NavLink>
-        </li>
-      </ul>
-    </li>
+                    </NavLink>
+                  </li>
+                </ul>
+              </li>
   )}
 
   {/* Demande d'absences - Tous */}
@@ -207,70 +207,70 @@ const MasterLayout = ({ children }) => {
     <Link to="#">
       <Icon icon="mdi:calendar-account-outline" className="menu-icon" />
       <span>Demande d'absences</span>
-    </Link>
+              </Link>
     <ul className="sidebar-submenu">
       {(roles.includes("RH") || roles.includes("CHEF_DEP")) && (
         <li>
           <NavLink to="/absences" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:clipboard-list-outline" className="circle-icon w-auto" />
             Liste des demandes
-          </NavLink>
-        </li>
+                  </NavLink>
+                </li>
       )}
       <li>
         <NavLink to="absences/add" className={(navData) => navData.isActive ? "active-page" : ""}>
           <Icon icon="mdi:calendar-plus-outline" className="circle-icon w-auto" />
           Ajouter une demande
-        </NavLink>
-      </li>
-    </ul>
-  </li>
+                  </NavLink>
+                </li>
+              </ul>
+            </li>
 
   {/* Pointage */}
   <li className="dropdown">
     <Link to="#">
       <Icon icon="mdi:clock-outline" className="menu-icon" />
       <span>Pointage</span>
-    </Link>
+              </Link>
     <ul className="sidebar-submenu">
       <li>
         <NavLink to="/liste-pointages" className={(navData) => navData.isActive ? "active-page" : ""}>
           <Icon icon="mdi:format-list-checks" className="circle-icon w-auto" />
           Liste des pointages
-        </NavLink>
-      </li>
+                  </NavLink>
+                </li>
       {(roles.includes("RH") || roles.includes("CHEF_DEP")) && (
         <li>
           <NavLink to="/ajouter-pointage" className={(navData) => navData.isActive ? "active-page" : ""}>
             <Icon icon="mdi:clock-plus-outline" className="circle-icon w-auto" />
             Ajouter un pointage
-          </NavLink>
-        </li>
+                  </NavLink>
+                </li>
       )}
-    </ul>
-  </li>
+              </ul>
+            </li>
 
   {/* Reporting */}
   <li className="dropdown">
     <Link to="#">
       <Icon icon="mdi:chart-box-outline" className="menu-icon" />
       <span>Reporting</span>
-    </Link>
+              </Link>
     <ul className="sidebar-submenu">
       <li>
         <NavLink to="/import-export" className={(navData) => navData.isActive ? "active-page" : ""}>
           <Icon icon="mdi:file-import-outline" className="circle-icon w-auto" />
           Import / Export (Excel)
-        </NavLink>
-      </li>
-      <li>
+                  </NavLink>
+                </li>
+                <li>
         <NavLink to="/statistiques" className={(navData) => navData.isActive ? "active-page" : ""}>
           <Icon icon="mdi:chart-bar-stacked" className="circle-icon w-auto" />
           Statistiques
-        </NavLink>
-      </li>
-    </ul>
-  </li>
+                  </NavLink>
+                </li>
+              </ul>
+            </li>
 </ul>
         </div>
       </aside>
@@ -288,7 +288,7 @@ const MasterLayout = ({ children }) => {
                   onClick={sidebarControl}
                 >
                   {sidebarActive ? (
-                    <Icon
+                <Icon
                       icon='iconoir:arrow-right'
                       className='icon text-2xl non-active'
                     />
@@ -667,7 +667,7 @@ const MasterLayout = ({ children }) => {
                             0
                           </span>
                         </div>
-                      </Link>
+              </Link>
                       <Link
                         to='#'
                         className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between'
@@ -697,7 +697,7 @@ const MasterLayout = ({ children }) => {
                             8
                           </span>
                         </div>
-                      </Link>
+              </Link>
                     </div>
                     <div className='text-center py-12 px-16'>
                       <Link
@@ -705,7 +705,7 @@ const MasterLayout = ({ children }) => {
                         className='text-primary-600 fw-semibold text-md'
                       >
                         See All Message
-                      </Link>
+              </Link>
                     </div>
                   </div>
                 </div>
@@ -739,7 +739,7 @@ const MasterLayout = ({ children }) => {
                       >
                         <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
                           <span className='w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                            <Icon
+                <Icon
                               icon='bitcoin-icons:verify-outline'
                               className='icon text-xxl'
                             />
@@ -757,7 +757,7 @@ const MasterLayout = ({ children }) => {
                         <span className='text-sm text-secondary-light flex-shrink-0'>
                           23 Mins ago
                         </span>
-                      </Link>
+              </Link>
                       <Link
                         to='#'
                         className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between bg-neutral-50'
@@ -781,7 +781,7 @@ const MasterLayout = ({ children }) => {
                         <span className='text-sm text-secondary-light flex-shrink-0'>
                           23 Mins ago
                         </span>
-                      </Link>
+              </Link>
                       <Link
                         to='#'
                         className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between'
@@ -802,7 +802,7 @@ const MasterLayout = ({ children }) => {
                         <span className='text-sm text-secondary-light flex-shrink-0'>
                           23 Mins ago
                         </span>
-                      </Link>
+              </Link>
                       <Link
                         to='#'
                         className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between bg-neutral-50'
@@ -826,7 +826,7 @@ const MasterLayout = ({ children }) => {
                         <span className='text-sm text-secondary-light flex-shrink-0'>
                           23 Mins ago
                         </span>
-                      </Link>
+              </Link>
                       <Link
                         to='#'
                         className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between'
@@ -883,7 +883,7 @@ const MasterLayout = ({ children }) => {
                         </span>
                       </div>
                       <button type='button' className='hover-text-danger'>
-                        <Icon
+                <Icon
                           icon='radix-icons:cross-1'
                           className='icon text-xl'
                         />
@@ -894,39 +894,39 @@ const MasterLayout = ({ children }) => {
                         <Link
                           className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'
                           to='/view-profile'
-                        >
-                          <Icon
+              >
+                <Icon
                             icon='solar:user-linear'
                             className='icon text-xl'
                           />{" "}
                           My Profile
                         </Link>
-                      </li>
-                      <li>
+            </li>
+            <li>
                         <Link
                           className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'
                           to='/email'
-                        >
-                          <Icon
+              >
+                <Icon
                             icon='tabler:message-check'
                             className='icon text-xl'
                           />{" "}
                           Inbox
                         </Link>
-                      </li>
-                      <li>
+            </li>
+            <li>
                         <Link
                           className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'
                           to='/company'
                         >
-                          <Icon
-                            icon='icon-park-outline:setting-two'
+                <Icon
+                  icon='icon-park-outline:setting-two'
                             className='icon text-xl'
-                          />
+                />
                           Setting
-                        </Link>
-                      </li>
-                      <li>
+              </Link>
+                </li>
+                <li>
                         <Link
                           className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3'
                           to='#'
@@ -935,9 +935,9 @@ const MasterLayout = ({ children }) => {
                           <Icon icon='lucide:power' className='icon text-xl' />{" "}
                           Log Out
                         </Link>
-                      </li>
-                    </ul>
-                  </div>
+            </li>
+          </ul>
+        </div>
                 </div>
                 {/* Profile dropdown end */}
               </div>
